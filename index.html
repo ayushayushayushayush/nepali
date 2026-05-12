@@ -2,7 +2,7 @@
 <html lang="ne">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>नेपाली साहित्य — Nepali Literary Collection</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -91,14 +91,18 @@
       border: none;
       background: transparent;
       color: #666666;
-      font-family: 'Cormorant Garamond', serif;
+      font-family: 'Noto Serif Devanagari', serif;
       font-size: 17px;
-      font-weight: 600;
-      letter-spacing: 0.04em;
+      font-weight: 700;
+      letter-spacing: 0.01em;
       cursor: pointer;
       transition: all 0.25s;
       position: relative;
       -webkit-tap-highlight-color: transparent;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1px;
     }
 
     .tab-btn.active { color: #ffffff; }
@@ -114,10 +118,13 @@
 
     .tab-btn .dev-label {
       display: block;
-      font-family: 'Noto Serif Devanagari', serif;
-      font-size: 10px;
-      opacity: 0.55;
-      margin-top: 1px;
+      font-family: 'Libre Baskerville', serif;
+      font-size: 9px;
+      font-weight: 400;
+      opacity: 0.5;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-top: 0;
     }
 
     /* ─── SEARCH BAR ─── */
@@ -826,13 +833,13 @@
 
   <div id="tabs">
     <button class="tab-btn active" data-tab="poems" onclick="switchTab('poems')">
-      Poems <span class="dev-label">कविताहरू</span>
+      कविताहरू <span class="dev-label">Poems</span>
     </button>
     <button class="tab-btn" data-tab="stories" onclick="switchTab('stories')">
-      Stories <span class="dev-label">कथाहरू</span>
+      कथाहरू <span class="dev-label">Stories</span>
     </button>
     <button class="tab-btn" data-tab="books" onclick="switchTab('books')">
-      Books <span class="dev-label">पुस्तकहरू</span>
+      पुस्तकहरू <span class="dev-label">Books</span>
     </button>
   </div>
 
