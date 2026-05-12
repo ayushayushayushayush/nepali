@@ -8,7 +8,6 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Devanagari:wght@300;400;500;600;700&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap" rel="stylesheet" />
 
-  <script src="https://cdn.jsdelivr.net/npm/epubjs/dist/epub.min.js"></script>
   <style>
     :root {
       --ink:        #1c1008;
@@ -21,6 +20,8 @@
       --parchment3: #ddd0b0;
       --white:      #fdf8ef;
       --shadow:     rgba(28, 16, 8, 0.18);
+      --book-green: #2a6b4a;
+      --book-green-bg: #d8ede3;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -34,7 +35,6 @@
       overflow: hidden;
     }
 
-    /* ─── NOISE TEXTURE OVERLAY ─── */
     body::before {
       content: '';
       position: fixed; inset: 0; z-index: 0;
@@ -42,13 +42,11 @@
       pointer-events: none;
     }
 
-    /* ─── APP SHELL ─── */
     #app {
       position: fixed; inset: 0;
       display: flex;
       flex-direction: column;
       z-index: 1;
-      /* safe area for notch / home bar */
       padding-top: env(safe-area-inset-top);
       padding-bottom: env(safe-area-inset-bottom);
     }
@@ -75,10 +73,7 @@
       line-height: 1.2;
     }
 
-    #topbar h1 span {
-      font-style: italic;
-      color: var(--gold);
-    }
+    #topbar h1 span { font-style: italic; color: var(--gold); }
 
     #topbar .subtitle {
       font-family: 'Noto Serif Devanagari', serif;
@@ -112,9 +107,7 @@
       -webkit-tap-highlight-color: transparent;
     }
 
-    .tab-btn.active {
-      color: var(--gold-light);
-    }
+    .tab-btn.active { color: var(--gold-light); }
 
     .tab-btn.active::after {
       content: '';
@@ -144,11 +137,7 @@
       gap: 8px;
     }
 
-    #searchbar svg {
-      color: var(--ink-soft);
-      flex-shrink: 0;
-      opacity: 0.5;
-    }
+    #searchbar svg { color: var(--ink-soft); flex-shrink: 0; opacity: 0.5; }
 
     #search-input {
       flex: 1;
@@ -160,20 +149,12 @@
       outline: none;
     }
 
-    #search-input::placeholder {
-      color: var(--ink-soft);
-      opacity: 0.45;
-    }
+    #search-input::placeholder { color: var(--ink-soft); opacity: 0.45; }
 
     #clear-search {
-      border: none;
-      background: none;
-      cursor: pointer;
-      color: var(--ink-soft);
-      opacity: 0.5;
-      font-size: 18px;
-      line-height: 1;
-      padding: 0 2px;
+      border: none; background: none; cursor: pointer;
+      color: var(--ink-soft); opacity: 0.5;
+      font-size: 18px; line-height: 1; padding: 0 2px;
       -webkit-tap-highlight-color: transparent;
       display: none;
     }
@@ -211,21 +192,18 @@
       background: var(--gold);
       color: var(--white);
       border: none;
-      width: 24px;
-      height: 24px;
+      width: 24px; height: 24px;
       border-radius: 50%;
-      font-size: 20px;
-      line-height: 1;
+      font-size: 20px; line-height: 1;
       cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      display: flex; align-items: center; justify-content: center;
       box-shadow: 0 1px 3px var(--shadow);
       transition: transform 0.1s;
       -webkit-tap-highlight-color: transparent;
     }
     #add-btn:active { transform: scale(0.9); }
 
+    /* ─── CARD ─── */
     .card {
       margin: 6px 14px;
       border-radius: 8px;
@@ -252,9 +230,7 @@
     }
 
     .card:active { transform: scale(0.98); }
-
-    .card:active::before,
-    .card.selected::before { transform: scaleY(1); }
+    .card:active::before, .card.selected::before { transform: scaleY(1); }
 
     .card-title {
       font-family: 'Cormorant Garamond', serif;
@@ -266,10 +242,8 @@
     }
 
     .card-meta {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      align-items: center;
+      display: flex; flex-wrap: wrap;
+      gap: 6px; align-items: center;
     }
 
     .card-author {
@@ -288,9 +262,7 @@
 
     .card-tags {
       margin-top: 6px;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 4px;
+      display: flex; flex-wrap: wrap; gap: 4px;
     }
 
     .tag {
@@ -308,11 +280,91 @@
       text-overflow: ellipsis;
     }
 
-    .no-results {
-      padding: 60px 24px;
-      text-align: center;
+    /* ─── BOOK CARD specific ─── */
+    .book-card {
+      margin: 6px 14px;
+      border-radius: 8px;
+      background: var(--white);
+      box-shadow: 0 1px 6px var(--shadow);
+      cursor: pointer;
+      padding: 0;
+      transition: all 0.18s;
+      -webkit-tap-highlight-color: transparent;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: stretch;
     }
 
+    .book-card:active { transform: scale(0.98); }
+
+    .book-spine {
+      width: 5px;
+      flex-shrink: 0;
+      background: var(--book-green);
+      border-radius: 8px 0 0 8px;
+      transition: width 0.2s;
+    }
+
+    .book-card:active .book-spine { width: 8px; }
+
+    .book-card-body {
+      flex: 1;
+      padding: 13px 14px;
+    }
+
+    .book-card-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 17px;
+      font-weight: 600;
+      color: var(--ink);
+      line-height: 1.3;
+      margin-bottom: 5px;
+    }
+
+    .book-card-meta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .book-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      padding: 1px 8px;
+      border-radius: 20px;
+      background: var(--book-green-bg);
+      color: var(--book-green);
+      font-size: 9.5px;
+      font-family: 'Libre Baskerville', serif;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+
+    .book-filename {
+      font-size: 10px;
+      color: var(--ink-soft);
+      opacity: 0.45;
+      font-family: 'Libre Baskerville', serif;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 160px;
+    }
+
+    .book-arrow {
+      display: flex;
+      align-items: center;
+      padding: 0 12px;
+      color: var(--parchment3);
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+
+    /* ─── NO RESULTS ─── */
+    .no-results { padding: 60px 24px; text-align: center; }
     .no-results .icon { font-size: 40px; margin-bottom: 12px; }
     .no-results p {
       font-family: 'Noto Serif Devanagari', serif;
@@ -321,11 +373,10 @@
       opacity: 0.6;
     }
 
-    /* ─── DETAIL PANEL (slide-up sheet) ─── */
+    /* ─── DETAIL PANEL ─── */
     #detail-overlay {
       display: none;
-      position: fixed;
-      inset: 0;
+      position: fixed; inset: 0;
       z-index: 50;
       background: rgba(28,16,8,0.45);
       backdrop-filter: blur(3px);
@@ -349,7 +400,6 @@
       padding-bottom: env(safe-area-inset-bottom);
     }
 
-    /* drag handle */
     #detail-sheet::before {
       content: '';
       display: block;
@@ -360,7 +410,6 @@
       flex-shrink: 0;
     }
 
-    /* ─── DETAIL HEADER ─── */
     #detail-header {
       flex-shrink: 0;
       padding: 14px 20px 16px;
@@ -370,69 +419,49 @@
 
     #detail-type-badge {
       display: inline-flex;
-      align-items: center;
-      gap: 5px;
+      align-items: center; gap: 5px;
       padding: 2px 10px;
       border-radius: 20px;
-      font-size: 10px;
-      letter-spacing: 0.08em;
+      font-size: 10px; letter-spacing: 0.08em;
       text-transform: uppercase;
       font-family: 'Libre Baskerville', serif;
       margin-bottom: 8px;
     }
 
-    #detail-type-badge.poem {
-      background: #fce8d8;
-      color: #7a3010;
-    }
-
-    #detail-type-badge.story {
-      background: #dde8f5;
-      color: #1a3560;
-    }
+    #detail-type-badge.poem  { background: #fce8d8; color: #7a3010; }
+    #detail-type-badge.story { background: #dde8f5; color: #1a3560; }
+    #detail-type-badge.book  { background: var(--book-green-bg); color: var(--book-green); }
 
     #detail-title {
       font-family: 'Cormorant Garamond', serif;
-      font-size: 24px;
-      font-weight: 600;
-      line-height: 1.25;
-      color: var(--ink);
+      font-size: 24px; font-weight: 600;
+      line-height: 1.25; color: var(--ink);
       margin-bottom: 6px;
       padding-right: 40px;
     }
 
     #detail-author {
       font-family: 'Libre Baskerville', serif;
-      font-size: 13px;
-      color: var(--accent);
-      font-style: italic;
+      font-size: 13px; color: var(--accent); font-style: italic;
     }
 
     #detail-date {
-      font-size: 11px;
-      color: var(--ink-soft);
-      opacity: 0.5;
-      margin-top: 4px;
+      font-size: 11px; color: var(--ink-soft); opacity: 0.5; margin-top: 4px;
     }
 
     #close-btn {
       position: absolute;
       top: 14px; right: 16px;
       width: 34px; height: 34px;
-      border-radius: 50%;
-      border: none;
-      background: var(--parchment2);
-      color: var(--ink-soft);
-      font-size: 18px;
-      cursor: pointer;
+      border-radius: 50%; border: none;
+      background: var(--parchment2); color: var(--ink-soft);
+      font-size: 18px; cursor: pointer;
       display: flex; align-items: center; justify-content: center;
       -webkit-tap-highlight-color: transparent;
       transition: background 0.15s;
     }
-
     #close-btn:active { background: var(--parchment3); }
 
-    /* ─── DETAIL CONTENT SCROLL ─── */
     #detail-scroll {
       flex: 1;
       overflow-y: auto;
@@ -440,42 +469,307 @@
       overscroll-behavior: contain;
       padding: 20px 22px 40px;
     }
-
     #detail-scroll::-webkit-scrollbar { display: none; }
 
-    /* ─── POEM CONTENT ─── */
     .poem-body {
       font-family: 'Noto Serif Devanagari', serif;
-      font-size: 16px;
-      line-height: 2;
-      color: var(--ink);
-      white-space: pre-wrap;
+      font-size: 16px; line-height: 2;
+      color: var(--ink); white-space: pre-wrap;
     }
 
-    /* ─── STORY CONTENT ─── */
     .story-body {
       font-family: 'Noto Serif Devanagari', serif;
-      font-size: 16px;
-      line-height: 1.9;
-      color: var(--ink);
+      font-size: 16px; line-height: 1.9; color: var(--ink);
     }
-
-    .story-body p {
-      margin-bottom: 1.2em;
-      text-indent: 1.2em;
-    }
-
+    .story-body p { margin-bottom: 1.2em; text-indent: 1.2em; }
     .story-body p:first-child { text-indent: 0; }
-
-    /* Drop cap for story first paragraph */
     .story-body p:first-child::first-letter {
       float: left;
       font-family: 'Cormorant Garamond', serif;
-      font-size: 4em;
-      line-height: 0.75;
+      font-size: 4em; line-height: 0.75;
       margin: 0.08em 8px 0 0;
-      color: var(--accent);
+      color: var(--accent); font-weight: 600;
+    }
+
+    #read-progress {
+      position: absolute; bottom: 0; left: 0;
+      height: 2px; background: var(--gold);
+      width: 0%; transition: width 0.1s linear;
+      border-radius: 0 2px 2px 0;
+    }
+
+    /* ─── EPUB READER OVERLAY ─── */
+    #epub-overlay {
+      display: none;
+      position: fixed; inset: 0;
+      z-index: 80;
+      background: var(--white);
+      flex-direction: column;
+    }
+
+    #epub-overlay.open {
+      display: flex;
+      animation: fadeIn 0.2s ease;
+    }
+
+    #epub-topbar {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 16px;
+      background: var(--ink);
+      border-bottom: 2px solid var(--gold);
+    }
+
+    #epub-back-btn {
+      background: none; border: none;
+      color: var(--gold-light);
+      font-size: 20px; cursor: pointer;
+      padding: 4px 8px 4px 0;
+      -webkit-tap-highlight-color: transparent;
+      display: flex; align-items: center;
+      gap: 6px;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 14px;
+      letter-spacing: 0.04em;
+    }
+
+    #epub-book-title {
+      flex: 1;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 16px; font-weight: 300;
+      color: var(--gold-light);
+      white-space: nowrap; overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    #epub-chapter-info {
+      font-family: 'Libre Baskerville', serif;
+      font-size: 10px;
+      color: var(--parchment3);
+      opacity: 0.5;
+      white-space: nowrap;
+    }
+
+    /* TOC drawer */
+    #epub-toc-btn {
+      background: none; border: none;
+      color: var(--gold-light); cursor: pointer;
+      padding: 4px;
+      -webkit-tap-highlight-color: transparent;
+      opacity: 0.8;
+    }
+
+    #epub-toc-drawer {
+      position: absolute;
+      top: 0; left: 0; bottom: 0;
+      width: min(80vw, 300px);
+      background: var(--ink);
+      z-index: 90;
+      transform: translateX(-100%);
+      transition: transform 0.28s cubic-bezier(0.32,0.72,0,1);
+      display: flex;
+      flex-direction: column;
+      padding-top: env(safe-area-inset-top);
+    }
+
+    #epub-toc-drawer.open {
+      transform: translateX(0);
+      box-shadow: 4px 0 30px rgba(0,0,0,0.4);
+    }
+
+    #epub-toc-backdrop {
+      display: none;
+      position: absolute; inset: 0;
+      z-index: 89;
+      background: rgba(0,0,0,0.4);
+    }
+    #epub-toc-backdrop.open { display: block; }
+
+    #toc-header {
+      padding: 20px 18px 12px;
+      border-bottom: 1px solid rgba(200,134,42,0.3);
+      flex-shrink: 0;
+    }
+
+    #toc-header h3 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 18px; font-weight: 300;
+      color: var(--gold-light);
+      letter-spacing: 0.05em;
+    }
+
+    #toc-header p {
+      font-family: 'Noto Serif Devanagari', serif;
+      font-size: 10px;
+      color: var(--parchment3);
+      opacity: 0.5;
+      margin-top: 2px;
+    }
+
+    #toc-list {
+      flex: 1; overflow-y: auto;
+      padding: 8px 0;
+    }
+    #toc-list::-webkit-scrollbar { display: none; }
+
+    .toc-item {
+      padding: 10px 18px;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 15px; font-weight: 300;
+      color: var(--parchment2);
+      cursor: pointer;
+      transition: all 0.15s;
+      border-left: 3px solid transparent;
+      line-height: 1.4;
+    }
+
+    .toc-item:active, .toc-item.active {
+      background: rgba(200,134,42,0.12);
+      border-left-color: var(--gold);
+      color: var(--gold-light);
+    }
+
+    .toc-item-num {
+      font-size: 10px;
+      opacity: 0.4;
+      margin-right: 6px;
+      font-family: 'Libre Baskerville', serif;
+    }
+
+    /* Epub content area */
+    #epub-content-wrap {
+      flex: 1;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
+      position: relative;
+    }
+    #epub-content-wrap::-webkit-scrollbar { display: none; }
+
+    #epub-content {
+      max-width: 680px;
+      margin: 0 auto;
+      padding: 28px 22px 60px;
+      font-family: 'Noto Serif Devanagari', serif;
+      font-size: 16px;
+      line-height: 1.95;
+      color: var(--ink);
+    }
+
+    /* Style injected epub content */
+    #epub-content h1, #epub-content h2, #epub-content h3 {
+      font-family: 'Cormorant Garamond', serif;
+      color: var(--ink);
+      margin: 1.4em 0 0.6em;
       font-weight: 600;
+      line-height: 1.25;
+    }
+    #epub-content h1 { font-size: 26px; }
+    #epub-content h2 { font-size: 21px; }
+    #epub-content h3 { font-size: 18px; }
+    #epub-content p  { margin-bottom: 1em; }
+    #epub-content img { max-width: 100%; border-radius: 6px; margin: 1em 0; }
+    #epub-content a  { color: var(--accent); text-decoration: none; }
+    #epub-content blockquote {
+      border-left: 3px solid var(--gold);
+      padding-left: 16px;
+      margin: 1em 0;
+      font-style: italic;
+      color: var(--ink-soft);
+    }
+    #epub-content table {
+      width: 100%; border-collapse: collapse; margin: 1em 0;
+      font-size: 14px;
+    }
+    #epub-content td, #epub-content th {
+      padding: 6px 10px;
+      border: 1px solid var(--parchment3);
+    }
+    #epub-content th { background: var(--parchment2); font-weight: 600; }
+
+    /* Epub bottom nav */
+    #epub-nav {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      gap: 0;
+      background: var(--parchment2);
+      border-top: 1px solid var(--parchment3);
+      padding: 8px 16px;
+      padding-bottom: calc(8px + env(safe-area-inset-bottom));
+    }
+
+    .epub-nav-btn {
+      background: none; border: 1px solid var(--parchment3);
+      border-radius: 6px;
+      padding: 7px 14px;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 14px;
+      color: var(--ink-soft);
+      cursor: pointer;
+      transition: all 0.15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .epub-nav-btn:active, .epub-nav-btn:not(:disabled):hover {
+      background: var(--parchment3);
+      color: var(--ink);
+    }
+    .epub-nav-btn:disabled { opacity: 0.3; cursor: default; }
+
+    #epub-progress-wrap {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      padding: 0 12px;
+    }
+
+    #epub-progress-bar {
+      width: 100%; height: 3px;
+      background: var(--parchment3);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    #epub-progress-fill {
+      height: 100%;
+      background: var(--gold);
+      border-radius: 3px;
+      transition: width 0.3s ease;
+    }
+
+    #epub-progress-text {
+      font-family: 'Libre Baskerville', serif;
+      font-size: 10px;
+      color: var(--ink-soft);
+      opacity: 0.5;
+    }
+
+    /* Epub loading state */
+    #epub-loading {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 16px;
+      background: var(--white);
+      z-index: 5;
+    }
+
+    #epub-loading p {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 18px; font-weight: 300;
+      color: var(--ink-soft);
+      letter-spacing: 0.04em;
+    }
+
+    #epub-loading .dev-sub {
+      font-family: 'Noto Serif Devanagari', serif;
+      font-size: 12px;
+      color: var(--ink-soft);
+      opacity: 0.5;
     }
 
     /* ─── LOADING STATE ─── */
@@ -483,42 +777,31 @@
       position: fixed; inset: 0;
       z-index: 100;
       background: var(--ink);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
       gap: 16px;
       transition: opacity 0.5s;
     }
-
     #loading.hide { opacity: 0; pointer-events: none; }
 
     #loading h2 {
       font-family: 'Cormorant Garamond', serif;
-      font-size: 28px;
-      font-weight: 300;
-      color: var(--gold-light);
-      letter-spacing: 0.06em;
+      font-size: 28px; font-weight: 300;
+      color: var(--gold-light); letter-spacing: 0.06em;
     }
 
     #loading .dev-title {
       font-family: 'Noto Serif Devanagari', serif;
-      font-size: 14px;
-      color: var(--parchment3);
-      opacity: 0.6;
+      font-size: 14px; color: var(--parchment3); opacity: 0.6;
     }
 
-    .loader-dots {
-      display: flex; gap: 8px;
-    }
-
+    .loader-dots { display: flex; gap: 8px; }
     .loader-dots span {
       width: 6px; height: 6px;
       border-radius: 50%;
       background: var(--gold);
       animation: bounce 1s ease-in-out infinite;
     }
-
     .loader-dots span:nth-child(2) { animation-delay: 0.15s; }
     .loader-dots span:nth-child(3) { animation-delay: 0.3s; }
 
@@ -527,77 +810,32 @@
       40% { transform: scale(1); opacity: 1; }
     }
 
-    /* ─── ERROR state ─── */
     #error-state {
-      padding: 40px 24px;
-      text-align: center;
-      display: none;
+      padding: 40px 24px; text-align: center; display: none;
     }
-
     #error-state .icon { font-size: 36px; margin-bottom: 12px; }
-
     #error-state p {
       font-family: 'Noto Serif Devanagari', serif;
-      font-size: 14px;
-      color: var(--ink-soft);
-      line-height: 1.7;
+      font-size: 14px; color: var(--ink-soft); line-height: 1.7;
     }
-
     #error-state code {
-      background: var(--parchment2);
-      padding: 2px 6px;
-      border-radius: 4px;
-      font-size: 12px;
-      font-family: monospace;
-    }
-
-    /* Progress read indicator */
-    #read-progress {
-      position: absolute;
-      bottom: 0; left: 0;
-      height: 2px;
-      background: var(--gold);
-      width: 0%;
-      transition: width 0.1s linear;
-      border-radius: 0 2px 2px 0;
-    }
-
-    /* ─── EPUB READER STYLES ─── */
-    #epub-viewer-container {
-      display: none;
-      flex-direction: column;
-      height: 100%;
-    }
-    #epub-viewer { flex: 1; min-height: 0; }
-    .epub-controls {
-      display: flex; justify-content: space-between; padding: 12px 20px;
-      border-top: 1px solid var(--parchment2);
-      background: var(--white);
-      gap: 10px;
-    }
-    .epub-btn {
-      flex: 1; padding: 10px; border: 1px solid var(--gold);
-      background: transparent; color: var(--ink); font-family: serif; cursor: pointer;
-      border-radius: 4px;
+      background: var(--parchment2); padding: 2px 6px;
+      border-radius: 4px; font-size: 12px; font-family: monospace;
     }
   </style>
 </head>
 <body>
 
-<!-- Loading screen -->
 <div id="loading">
   <h2>नेपाली साहित्य</h2>
   <div class="dev-title">Nepali Literary Collection</div>
-  <div class="loader-dots">
-    <span></span><span></span><span></span>
-  </div>
+  <div class="loader-dots"><span></span><span></span><span></span></div>
 </div>
 
-<!-- App Shell -->
 <div id="app">
   <div id="topbar">
     <h1>नेपाली साहित्य — <span>Literary Collection</span></h1>
-    <div class="subtitle">कविता • कथा • साहित्य</div>
+    <div class="subtitle">कविता • कथा • पुस्तक</div>
   </div>
 
   <div id="tabs">
@@ -626,7 +864,7 @@
       <div class="icon">📜</div>
       <p>Could not load the CSV files.<br/>
          Make sure <code>nepali_poems.csv</code> and<br/>
-         <code>nepali_stories.csv</code> are in the same folder as this HTML file.</p>
+         <code>nepali_stories.csv</code> are in the same folder.</p>
     </div>
     <div class="list-header">
       <div class="list-count" id="list-count"></div>
@@ -637,7 +875,7 @@
   </div>
 </div>
 
-<!-- Detail overlay -->
+<!-- Poem/Story detail overlay -->
 <div id="detail-overlay" onclick="closeDetail(event)">
   <div id="detail-sheet">
     <div id="detail-header">
@@ -649,62 +887,116 @@
       <div id="read-progress"></div>
     </div>
     <div id="detail-scroll" onscroll="updateReadProgress()">
-    <div id="detail-scroll" style="display: block;" onscroll="updateReadProgress()">
       <div id="detail-content"></div>
-    </div>
-    <div id="epub-viewer-container">
-      <div id="epub-viewer"></div>
-      <div class="epub-controls">
-        <button class="epub-btn" onclick="prevPage()">← Previous</button>
-        <button class="epub-btn" onclick="nextPage()">Next →</button>
-      </div>
     </div>
   </div>
 </div>
 
+<!-- EPUB Reader overlay -->
+<div id="epub-overlay">
+  <div id="epub-topbar">
+    <button id="epub-back-btn" onclick="closeEpubReader()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <path d="M19 12H5M12 5l-7 7 7 7"/>
+      </svg>
+      Back
+    </button>
+    <div id="epub-book-title">Loading…</div>
+    <div id="epub-chapter-info"></div>
+    <button id="epub-toc-btn" onclick="toggleToc()" title="Table of Contents">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="3" y1="6" x2="21" y2="6"/>
+        <line x1="3" y1="12" x2="16" y2="12"/>
+        <line x1="3" y1="18" x2="19" y2="18"/>
+      </svg>
+    </button>
+  </div>
+
+  <div style="position:relative; flex:1; display:flex; flex-direction:column; overflow:hidden;">
+    <!-- TOC backdrop -->
+    <div id="epub-toc-backdrop" onclick="closeToc()"></div>
+
+    <!-- TOC drawer -->
+    <div id="epub-toc-drawer">
+      <div id="toc-header">
+        <h3>Contents</h3>
+        <p>सूची</p>
+      </div>
+      <div id="toc-list"></div>
+    </div>
+
+    <!-- Loading indicator -->
+    <div id="epub-loading">
+      <div class="loader-dots"><span></span><span></span><span></span></div>
+      <p>Loading book…</p>
+      <div class="dev-sub">पुस्तक लोड हुँदैछ</div>
+    </div>
+
+    <!-- Content -->
+    <div id="epub-content-wrap" onscroll="updateEpubReadProgress()">
+      <div id="epub-content"></div>
+    </div>
+  </div>
+
+  <div id="epub-nav">
+    <button class="epub-nav-btn" id="epub-prev-btn" onclick="epubPrevChapter()">← Prev</button>
+    <div id="epub-progress-wrap">
+      <div id="epub-progress-bar">
+        <div id="epub-progress-fill" style="width:0%"></div>
+      </div>
+      <div id="epub-progress-text">Chapter 1 of 1</div>
+    </div>
+    <button class="epub-nav-btn" id="epub-next-btn" onclick="epubNextChapter()">Next →</button>
+  </div>
+</div>
+
+<!-- JSZip for parsing EPUB files -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
 <script>
-// ─── STATE ───────────────────────────────────────────────────────────────────
-let poems   = [];
-let stories = [];
-let books   = [];
+// ─── STATE ────────────────────────────────────────────────────────────────────
+let poems      = [];
+let stories    = [];
+let books      = [];
 let currentTab = 'poems';
 let searchQuery = '';
-let rendition = null; // For EPUB navigation
 
-const REPO_NAME = 'ayushdkl/YOUR_REPO_NAME'; // TODO: Update this to your repo path (e.g. 'ayushdkl/my-library')
+// EPUB reader state
+let epubZip        = null;
+let epubSpine      = [];   // ordered list of {id, href, title}
+let epubChapterIdx = 0;
+let epubBasePath   = '';
+let epubManifest   = {};
 
-// ─── CSV PARSER (handles quoted fields with newlines) ─────────────────────
+// ─── EPUB FILE LIST ───────────────────────────────────────────────────────────
+// All EPUB files in /NEP_EPUB/ — add filenames here as you add books
+const EPUB_FILES = [
+  // These are auto-detected by scanning the directory listing.
+  // Fallback: listed manually if directory listing is unavailable.
+];
+
+const EPUB_DIR = 'NEP_EPUB/';
+
+// ─── CSV PARSER ───────────────────────────────────────────────────────────────
 function parseCSV(text) {
   const rows = [];
-  let row = [];
-  let field = '';
-  let inQuotes = false;
+  let row = [], field = '', inQuotes = false;
 
   for (let i = 0; i < text.length; i++) {
-    const ch = text[i];
-    const next = text[i + 1];
-
+    const ch = text[i], next = text[i + 1];
     if (inQuotes) {
-      if (ch === '"' && next === '"') {
-        field += '"'; i++;
-      } else if (ch === '"') {
-        inQuotes = false;
-      } else {
-        field += ch;
-      }
+      if (ch === '"' && next === '"') { field += '"'; i++; }
+      else if (ch === '"') { inQuotes = false; }
+      else { field += ch; }
     } else {
-      if (ch === '"') {
-        inQuotes = true;
-      } else if (ch === ',') {
-        row.push(field); field = '';
-      } else if (ch === '\n' || (ch === '\r' && next === '\n')) {
+      if (ch === '"') { inQuotes = true; }
+      else if (ch === ',') { row.push(field); field = ''; }
+      else if (ch === '\n' || (ch === '\r' && next === '\n')) {
         if (ch === '\r') i++;
         row.push(field); field = '';
         if (row.some(c => c.trim())) rows.push(row);
         row = [];
-      } else {
-        field += ch;
-      }
+      } else { field += ch; }
     }
   }
   if (field || row.length) { row.push(field); if (row.some(c => c.trim())) rows.push(row); }
@@ -718,7 +1010,7 @@ function parseCSV(text) {
   });
 }
 
-// ─── LOAD CSVs ───────────────────────────────────────────────────────────────
+// ─── LOAD DATA ────────────────────────────────────────────────────────────────
 async function loadData() {
   try {
     const [pRes, sRes] = await Promise.all([
@@ -727,12 +1019,10 @@ async function loadData() {
     ]);
 
     if (!pRes.ok || !sRes.ok) throw new Error('fetch failed');
-
     const [pText, sText] = await Promise.all([pRes.text(), sRes.text()]);
 
-    poems   = parseCSV(pText).map((r, i) => ({
-      id: 'p' + i,
-      type: 'poem',
+    poems = parseCSV(pText).map((r, i) => ({
+      id: 'p' + i, type: 'poem',
       title:   r['Title (English)'] || `Poem ${i+1}`,
       author:  r['Poet / Author']   || '',
       date:    r['Date Published']  || '',
@@ -741,8 +1031,7 @@ async function loadData() {
     }));
 
     stories = parseCSV(sText).map((r, i) => ({
-      id: 's' + i,
-      type: 'story',
+      id: 's' + i, type: 'story',
       title:   r['Title (English)'] || `Story ${i+1}`,
       author:  r['Author']          || '',
       date:    r['Date Published']  || '',
@@ -750,23 +1039,7 @@ async function loadData() {
       content: r['Story Content']   || '',
     }));
 
-    // Load Books from GitHub Folder
-    try {
-      const bRes = await fetch(`https://api.github.com/repos/${REPO_NAME}/contents/NEP_EPUB`);
-      if (bRes.ok) {
-        const files = await bRes.json();
-        books = files.filter(f => f.name.endsWith('.epub')).map((f, i) => ({
-          id: 'b' + i,
-          type: 'book',
-          title: f.name.replace('.epub', '').replace(/_/g, ' '),
-          author: 'Available EPUB',
-          date: '',
-          tags: ['EPUB', 'Book'],
-          url: f.download_url
-        }));
-      }
-    } catch (err) { console.warn("Could not fetch EPUB list from GitHub API", err); }
-
+    await loadBookList();
     hideLoading();
     renderList();
   } catch (e) {
@@ -774,6 +1047,56 @@ async function loadData() {
     document.getElementById('error-state').style.display = 'block';
     console.error(e);
   }
+}
+
+// ─── LOAD BOOK LIST ───────────────────────────────────────────────────────────
+async function loadBookList() {
+  try {
+    // Try fetching directory listing (works on GitHub Pages static hosting)
+    const res = await fetch(EPUB_DIR);
+    if (res.ok) {
+      const html = await res.text();
+      // Parse filenames from directory listing HTML
+      const matches = [...html.matchAll(/href="([^"]+\.epub)"/gi)];
+      const found = matches
+        .map(m => {
+          const raw = m[1];
+          // Strip any path prefix, keep just the filename
+          return raw.split('/').pop();
+        })
+        .filter(f => f && f.toLowerCase().endsWith('.epub'))
+        .filter((f, i, arr) => arr.indexOf(f) === i); // dedupe
+
+      if (found.length > 0) {
+        books = found.map((filename, i) => ({
+          id: 'b' + i,
+          type: 'book',
+          filename,
+          title: epubFilenameToTitle(filename),
+          path: EPUB_DIR + filename,
+        }));
+        return;
+      }
+    }
+  } catch (e) { /* fall through */ }
+
+  // Fallback: use hardcoded EPUB_FILES list
+  books = EPUB_FILES.map((filename, i) => ({
+    id: 'b' + i,
+    type: 'book',
+    filename,
+    title: epubFilenameToTitle(filename),
+    path: EPUB_DIR + filename,
+  }));
+}
+
+function epubFilenameToTitle(filename) {
+  // Remove .epub extension, decode URI encoding, replace hyphens/underscores
+  let name = filename.replace(/\.epub$/i, '');
+  try { name = decodeURIComponent(name); } catch(e) {}
+  name = name.replace(/[-_]+/g, ' ').trim();
+  // Title-case ASCII parts while preserving Devanagari
+  return name.replace(/\b([a-z])/g, c => c.toUpperCase());
 }
 
 function parseTags(raw) {
@@ -790,40 +1113,61 @@ function hideLoading() {
 
 // ─── RENDER LIST ─────────────────────────────────────────────────────────────
 function currentItems() {
-  const pool = currentTab === 'poems' ? poems : stories;
-  let pool = [];
-  if (currentTab === 'poems') pool = poems;
+  let pool;
+  if (currentTab === 'poems')   pool = poems;
   else if (currentTab === 'stories') pool = stories;
   else pool = books;
 
   if (!searchQuery) return pool;
   const q = searchQuery.toLowerCase();
   return pool.filter(item =>
-    item.title.toLowerCase().includes(q)  ||
-    item.author.toLowerCase().includes(q) ||
-    item.content.toLowerCase().includes(q)||
-    item.tags.some(t => t.toLowerCase().includes(q))
-    (item.title && item.title.toLowerCase().includes(q))  ||
-    (item.author && item.author.toLowerCase().includes(q)) ||
-    (item.content && item.content.toLowerCase().includes(q))||
-    (item.tags && item.tags.some(t => t.toLowerCase().includes(q)))
+    item.title.toLowerCase().includes(q) ||
+    (item.author || '').toLowerCase().includes(q) ||
+    (item.content || '').toLowerCase().includes(q) ||
+    (item.tags || []).some(t => t.toLowerCase().includes(q))
   );
 }
 
 function renderList() {
-  const items = currentItems();
+  const items     = currentItems();
   const container = document.getElementById('cards-container');
   const countEl   = document.getElementById('list-count');
+  const addBtn    = document.getElementById('add-btn');
 
-  countEl.textContent = `${items.length} ${currentTab === 'poems' ? 'poem' : 'stor'}${items.length !== 1 ? (currentTab === 'poems' ? 's' : 'ies') : (currentTab === 'poems' ? '' : 'y')}`;
-  let label = currentTab === 'poems' ? 'poem' : (currentTab === 'stories' ? 'story' : 'book');
-  if (items.length !== 1) {
-      label = currentTab === 'poems' ? 'poems' : (currentTab === 'stories' ? 'stories' : 'books');
-  }
-  countEl.textContent = `${items.length} ${label}`;
+  // Hide add button on books tab
+  addBtn.style.display = currentTab === 'books' ? 'none' : 'flex';
+
+  const label = currentTab === 'poems' ? 'poem'
+              : currentTab === 'stories' ? 'stor'
+              : 'book';
+  const plural = currentTab === 'stories'
+    ? (items.length !== 1 ? 'ies' : 'y')
+    : (items.length !== 1 ? 's' : '');
+  countEl.textContent = `${items.length} ${label}${plural}`;
 
   if (items.length === 0) {
-    container.innerHTML = `<div class="no-results"><div class="icon">🔍</div><p>कुनै परिणाम फेला परेन।<br/>No results found.</p></div>`;
+    const emptyMsg = currentTab === 'books'
+      ? `<div class="no-results"><div class="icon">📚</div><p>No EPUB books found in <code>NEP_EPUB/</code>.<br/>Add <code>.epub</code> files to that folder.</p></div>`
+      : `<div class="no-results"><div class="icon">🔍</div><p>कुनै परिणाम फेला परेन।<br/>No results found.</p></div>`;
+    container.innerHTML = emptyMsg;
+    return;
+  }
+
+  if (currentTab === 'books') {
+    container.innerHTML = items.map((item, idx) => `
+      <div class="book-card" style="animation: fadeIn 0.3s ease ${idx * 0.03}s both"
+           onclick="openBook('${item.id}')">
+        <div class="book-spine"></div>
+        <div class="book-card-body">
+          <div class="book-card-title">${escHtml(item.title)}</div>
+          <div class="book-card-meta">
+            <span class="book-badge">📖 EPUB</span>
+            <span class="book-filename">${escHtml(item.filename)}</span>
+          </div>
+        </div>
+        <div class="book-arrow">›</div>
+      </div>
+    `).join('');
     return;
   }
 
@@ -832,9 +1176,7 @@ function renderList() {
     const tagsHtml = firstThreeTags.map(t =>
       `<span class="tag">${escHtml(t)}</span>`
     ).join('');
-
     const shortDate = item.date.split(',').pop()?.trim() || item.date;
-
     return `
       <div class="card" style="animation-delay:${idx * 0.03}s" onclick="openDetail('${item.id}')">
         <div class="card-title">${escHtml(item.title)}</div>
@@ -859,17 +1201,15 @@ function addNewItem() {
   const typeLabel = currentTab === 'poems' ? 'Poem' : 'Story';
   const title = prompt(`Enter ${typeLabel} Title:`);
   if (!title) return;
-  const author = prompt("Enter Author:");
-  const date = prompt("Enter Date:", new Date().toLocaleDateString());
+  const author  = prompt("Enter Author:");
+  const date    = prompt("Enter Date:", new Date().toLocaleDateString());
   const content = prompt("Enter Content (use \\n for line breaks):");
-
   const newItem = {
     id: (currentTab === 'poems' ? 'p' : 's') + Date.now(),
     type: currentTab === 'poems' ? 'poem' : 'story',
-    title: title, author: author || '', date: date || '',
+    title, author: author || '', date: date || '',
     tags: [], content: (content || '').replace(/\\n/g, '\n')
   };
-
   if (currentTab === 'poems') poems.unshift(newItem);
   else stories.unshift(newItem);
   renderList();
@@ -883,7 +1223,7 @@ function switchTab(tab) {
   renderList();
 }
 
-// ─── SEARCH ──────────────────────────────────────────────────────────────────
+// ─── SEARCH ───────────────────────────────────────────────────────────────────
 const searchInput = document.getElementById('search-input');
 const clearBtn    = document.getElementById('clear-search');
 
@@ -894,16 +1234,14 @@ searchInput.addEventListener('input', () => {
 });
 
 function clearSearch() {
-  searchInput.value = '';
-  searchQuery = '';
+  searchInput.value = ''; searchQuery = '';
   clearBtn.style.display = 'none';
   searchInput.focus();
   renderList();
 }
 
-// ─── DETAIL VIEW ──────────────────────────────────────────────────────────────
+// ─── POEM / STORY DETAIL VIEW ─────────────────────────────────────────────────
 function allItems() { return [...poems, ...stories]; }
-function allItems() { return [...poems, ...stories, ...books]; }
 
 function openDetail(id) {
   const item = allItems().find(i => i.id === id);
@@ -915,55 +1253,29 @@ function openDetail(id) {
   const dateEl  = document.getElementById('detail-date');
   const content = document.getElementById('detail-content');
   const scroll  = document.getElementById('detail-scroll');
-  const epubContainer = document.getElementById('epub-viewer-container');
 
   badge.className = 'detail-type-badge ' + item.type;
   badge.textContent = item.type === 'poem' ? '✦ Poem  ·  कविता' : '◈ Story  ·  कथा';
-  if (item.type === 'poem') badge.textContent = '✦ Poem  ·  कविता';
-  else if (item.type === 'story') badge.textContent = '◈ Story  ·  कथा';
-  else badge.textContent = '📖 Book · पुस्तक';
 
   title.textContent  = item.title;
   dateEl.textContent = item.date;
 
   let displayContent = item.content.replace(/\\n/g, '\n');
-  let displayAuthor = item.author ? `— ${item.author}` : '';
-  if (item.type === 'book') {
-    scroll.style.display = 'none';
-    epubContainer.style.display = 'flex';
-    document.getElementById('epub-viewer').innerHTML = '';
-    const book = ePub(item.url);
-    rendition = book.renderTo("epub-viewer", { width: "100%", height: "100%", flow: "paginated" });
-    rendition.display();
-    author.textContent = 'EPUB Reader';
-  } else {
-    scroll.style.display = 'block';
-    epubContainer.style.display = 'none';
-    let displayContent = item.content.replace(/\\n/g, '\n');
-    let displayAuthor = item.author ? `— ${item.author}` : '';
+  let displayAuthor  = item.author ? `— ${item.author}` : '';
 
   if (item.type === 'poem') {
-    if (item.type === 'poem') {
-    // Look for "Poet Name – Content" pattern at the start
     const poemMatch = displayContent.match(/^(.+?)\s*[–-]\s+([\s\S]*)$/);
     if (poemMatch) {
       const nepaliName = poemMatch[1].trim();
       displayContent = poemMatch[2].trim();
       displayAuthor = item.author ? `— ${item.author} (${nepaliName})` : `— (${nepaliName})`;
     }
-
-    const lines = displayContent
-      .split('\n')
-      .map(escHtml)
-      .join('\n');
-    content.innerHTML = `<div class="poem-body">${lines}</div>`;
+    content.innerHTML = `<div class="poem-body">${displayContent.split('\n').map(escHtml).join('\n')}</div>`;
   } else {
     const paragraphs = displayContent.split(/\n{2,}/).map(p => p.trim()).filter(Boolean);
     content.innerHTML = `<div class="story-body">${
       paragraphs.map(p => `<p>${escHtml(p)}</p>`).join('')
     }</div>`;
-    }
-    author.textContent = displayAuthor;
   }
 
   author.textContent = displayAuthor;
@@ -973,9 +1285,6 @@ function openDetail(id) {
   document.getElementById('detail-overlay').style.display = 'block';
   document.body.style.overflow = 'hidden';
 }
-
-function prevPage() { if (rendition) rendition.prev(); }
-function nextPage() { if (rendition) rendition.next(); }
 
 function closeDetailBtn() {
   document.getElementById('detail-overlay').style.display = 'none';
@@ -987,13 +1296,12 @@ function closeDetail(e) {
 }
 
 function updateReadProgress() {
-  const el = document.getElementById('detail-scroll');
+  const el    = document.getElementById('detail-scroll');
   const total = el.scrollHeight - el.clientHeight;
-  const pct = total > 0 ? (el.scrollTop / total) * 100 : 0;
+  const pct   = total > 0 ? (el.scrollTop / total) * 100 : 0;
   document.getElementById('read-progress').style.width = pct + '%';
 }
 
-// Swipe down to close
 let touchStartY = 0;
 document.getElementById('detail-sheet').addEventListener('touchstart', e => {
   touchStartY = e.touches[0].clientY;
@@ -1004,6 +1312,280 @@ document.getElementById('detail-sheet').addEventListener('touchend', e => {
   const scroll = document.getElementById('detail-scroll');
   if (dy > 80 && scroll.scrollTop === 0) closeDetailBtn();
 }, { passive: true });
+
+// ─── EPUB READER ──────────────────────────────────────────────────────────────
+async function openBook(id) {
+  const book = books.find(b => b.id === id);
+  if (!book) return;
+
+  const overlay = document.getElementById('epub-overlay');
+  overlay.classList.add('open');
+  document.getElementById('epub-book-title').textContent = book.title;
+  document.getElementById('epub-loading').style.display  = 'flex';
+  document.getElementById('epub-content').innerHTML      = '';
+  document.getElementById('toc-list').innerHTML          = '';
+
+  epubZip        = null;
+  epubSpine      = [];
+  epubChapterIdx = 0;
+  epubBasePath   = '';
+  epubManifest   = {};
+
+  try {
+    const response = await fetch(book.path);
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const arrayBuffer = await response.arrayBuffer();
+
+    epubZip = await JSZip.loadAsync(arrayBuffer);
+    await parseEpub(book.title);
+  } catch (err) {
+    document.getElementById('epub-loading').style.display = 'none';
+    document.getElementById('epub-content').innerHTML = `
+      <div style="padding:40px 20px; text-align:center; color:var(--ink-soft);">
+        <div style="font-size:40px; margin-bottom:16px;">📚</div>
+        <p style="font-family:'Cormorant Garamond',serif; font-size:20px; margin-bottom:8px;">
+          Could not load this book.
+        </p>
+        <p style="font-family:'Noto Serif Devanagari',serif; font-size:13px; opacity:0.6;">
+          ${escHtml(err.message)}
+        </p>
+      </div>`;
+    console.error('EPUB error:', err);
+  }
+}
+
+async function parseEpub(bookTitle) {
+  // 1. Find container.xml to locate OPF file
+  const containerXml = await epubZip.file('META-INF/container.xml')?.async('string');
+  if (!containerXml) throw new Error('No META-INF/container.xml found');
+
+  const opfMatch = containerXml.match(/full-path="([^"]+\.opf)"/i);
+  if (!opfMatch) throw new Error('Could not locate OPF file');
+  const opfPath = opfMatch[1];
+
+  // Base path is the directory containing the OPF
+  epubBasePath = opfPath.includes('/') ? opfPath.substring(0, opfPath.lastIndexOf('/') + 1) : '';
+
+  // 2. Parse OPF
+  const opfXml = await epubZip.file(opfPath)?.async('string');
+  if (!opfXml) throw new Error('Cannot read OPF file');
+
+  const parser = new DOMParser();
+  const opfDoc = parser.parseFromString(opfXml, 'application/xml');
+
+  // Build manifest: id -> {href, mediaType}
+  opfDoc.querySelectorAll('manifest item').forEach(item => {
+    epubManifest[item.getAttribute('id')] = {
+      href:      item.getAttribute('href'),
+      mediaType: item.getAttribute('media-type'),
+    };
+  });
+
+  // Build spine from itemrefs
+  const spineItems = opfDoc.querySelectorAll('spine itemref');
+  const ncxId = opfDoc.querySelector('spine')?.getAttribute('toc');
+
+  // Try to get chapter titles from NCX or NAV
+  const chapterTitles = await getChapterTitles(ncxId, opfDoc);
+
+  epubSpine = Array.from(spineItems).map((ref, i) => {
+    const id   = ref.getAttribute('idref');
+    const item = epubManifest[id];
+    return {
+      id,
+      href:  item ? epubBasePath + item.href : '',
+      title: chapterTitles[i] || chapterTitles[id] || `Chapter ${i + 1}`,
+    };
+  }).filter(s => s.href);
+
+  if (epubSpine.length === 0) throw new Error('No readable chapters found in spine');
+
+  // 3. Render TOC
+  renderToc();
+
+  // 4. Load first chapter
+  await loadChapter(0);
+}
+
+async function getChapterTitles(ncxId, opfDoc) {
+  const titles = {};
+
+  // Try NAV document first (EPUB3)
+  const navItem = Array.from(opfDoc.querySelectorAll('manifest item'))
+    .find(i => i.getAttribute('properties')?.includes('nav'));
+
+  if (navItem) {
+    try {
+      const navPath = epubBasePath + navItem.getAttribute('href');
+      const navXml  = await epubZip.file(navPath)?.async('string');
+      if (navXml) {
+        const navDoc = new DOMParser().parseFromString(navXml, 'text/html');
+        navDoc.querySelectorAll('nav[epub\\:type="toc"] a, nav a').forEach((a, i) => {
+          titles[i] = a.textContent.trim();
+        });
+      }
+    } catch(e) {}
+  }
+
+  // Fall back to NCX (EPUB2)
+  if (Object.keys(titles).length === 0 && ncxId) {
+    try {
+      const ncxHref = epubManifest[ncxId]?.href;
+      if (ncxHref) {
+        const ncxXml = await epubZip.file(epubBasePath + ncxHref)?.async('string');
+        if (ncxXml) {
+          const ncxDoc = new DOMParser().parseFromString(ncxXml, 'application/xml');
+          ncxDoc.querySelectorAll('navPoint').forEach((np, i) => {
+            const text = np.querySelector('navLabel text')?.textContent?.trim();
+            if (text) titles[i] = text;
+          });
+        }
+      }
+    } catch(e) {}
+  }
+
+  return titles;
+}
+
+function renderToc() {
+  const list = document.getElementById('toc-list');
+  list.innerHTML = epubSpine.map((ch, i) => `
+    <div class="toc-item ${i === epubChapterIdx ? 'active' : ''}"
+         id="toc-item-${i}"
+         onclick="jumpToChapter(${i})">
+      <span class="toc-item-num">${i + 1}.</span>${escHtml(ch.title)}
+    </div>
+  `).join('');
+}
+
+async function loadChapter(idx) {
+  if (idx < 0 || idx >= epubSpine.length) return;
+  epubChapterIdx = idx;
+
+  document.getElementById('epub-loading').style.display       = 'flex';
+  document.getElementById('epub-content-wrap').style.opacity  = '0.3';
+
+  const chapter = epubSpine[idx];
+
+  try {
+    // Normalize path — strip leading slash
+    const filePath = chapter.href.replace(/^\//, '');
+    const raw = await epubZip.file(filePath)?.async('string');
+    if (!raw) throw new Error(`File not found: ${filePath}`);
+
+    const doc = new DOMParser().parseFromString(raw, 'text/html');
+
+    // Remove scripts and style links that won't work cross-origin
+    doc.querySelectorAll('script, link[rel="stylesheet"]').forEach(el => el.remove());
+
+    // Fix image src: resolve relative paths and convert to blob URLs
+    const imagePromises = Array.from(doc.querySelectorAll('img[src]')).map(async img => {
+      try {
+        const imgSrc  = img.getAttribute('src');
+        const imgPath = resolveRelativePath(filePath, imgSrc);
+        const imgData = await epubZip.file(imgPath)?.async('uint8array');
+        if (imgData) {
+          const ext      = imgPath.split('.').pop().toLowerCase();
+          const mimeType = ext === 'jpg' || ext === 'jpeg' ? 'image/jpeg'
+                         : ext === 'png' ? 'image/png'
+                         : ext === 'gif' ? 'image/gif'
+                         : ext === 'svg' ? 'image/svg+xml'
+                         : ext === 'webp' ? 'image/webp'
+                         : 'image/jpeg';
+          const blob = new Blob([imgData], { type: mimeType });
+          img.setAttribute('src', URL.createObjectURL(blob));
+        }
+      } catch(e) {}
+    });
+
+    await Promise.allSettled(imagePromises);
+
+    // Get body content
+    const bodyEl = doc.body;
+    document.getElementById('epub-content').innerHTML = bodyEl ? bodyEl.innerHTML : raw;
+
+    // Update nav state
+    document.getElementById('epub-prev-btn').disabled = idx === 0;
+    document.getElementById('epub-next-btn').disabled = idx === epubSpine.length - 1;
+    document.getElementById('epub-chapter-info').textContent =
+      `${idx + 1} / ${epubSpine.length}`;
+
+    const pct = epubSpine.length > 1 ? Math.round((idx / (epubSpine.length - 1)) * 100) : 100;
+    document.getElementById('epub-progress-fill').style.width = pct + '%';
+    document.getElementById('epub-progress-text').textContent =
+      `${escHtml(chapter.title)}`;
+
+    // Scroll to top
+    document.getElementById('epub-content-wrap').scrollTop = 0;
+
+    // Update TOC active state
+    document.querySelectorAll('.toc-item').forEach((el, i) => {
+      el.classList.toggle('active', i === idx);
+    });
+
+    document.getElementById('epub-book-title').textContent = epubSpine[idx].title;
+
+  } catch(err) {
+    document.getElementById('epub-content').innerHTML = `
+      <p style="padding:20px; color:var(--ink-soft); font-family:'Noto Serif Devanagari',serif;">
+        Could not load chapter: ${escHtml(err.message)}
+      </p>`;
+    console.error('Chapter load error:', err);
+  }
+
+  document.getElementById('epub-loading').style.display      = 'none';
+  document.getElementById('epub-content-wrap').style.opacity = '1';
+}
+
+function resolveRelativePath(basePath, relativePath) {
+  if (relativePath.startsWith('/')) return relativePath.slice(1);
+  const baseDir = basePath.includes('/') ? basePath.substring(0, basePath.lastIndexOf('/') + 1) : '';
+  const combined = baseDir + relativePath;
+  // Normalize ../ segments
+  const parts = combined.split('/');
+  const resolved = [];
+  for (const p of parts) {
+    if (p === '..') resolved.pop();
+    else if (p !== '.') resolved.push(p);
+  }
+  return resolved.join('/');
+}
+
+async function epubPrevChapter() {
+  if (epubChapterIdx > 0) await loadChapter(epubChapterIdx - 1);
+}
+
+async function epubNextChapter() {
+  if (epubChapterIdx < epubSpine.length - 1) await loadChapter(epubChapterIdx + 1);
+}
+
+async function jumpToChapter(idx) {
+  closeToc();
+  await loadChapter(idx);
+}
+
+function updateEpubReadProgress() {
+  // Could track scroll position per chapter here if desired
+}
+
+function closeEpubReader() {
+  document.getElementById('epub-overlay').classList.remove('open');
+  // Clean up any blob URLs to avoid memory leaks
+  document.querySelectorAll('#epub-content img[src^="blob:"]').forEach(img => {
+    URL.revokeObjectURL(img.src);
+  });
+  epubZip = null;
+}
+
+function toggleToc() {
+  document.getElementById('epub-toc-drawer').classList.toggle('open');
+  document.getElementById('epub-toc-backdrop').classList.toggle('open');
+}
+
+function closeToc() {
+  document.getElementById('epub-toc-drawer').classList.remove('open');
+  document.getElementById('epub-toc-backdrop').classList.remove('open');
+}
 
 // ─── KICK OFF ─────────────────────────────────────────────────────────────────
 loadData();
