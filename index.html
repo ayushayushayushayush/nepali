@@ -10,18 +10,18 @@
 
   <style>
     :root {
-      --ink:        #1c1008;
-      --ink-soft:   #3d2b10;
-      --accent:     #9b2335;
-      --gold:       #c8862a;
-      --gold-light: #e4b96a;
-      --parchment:  #f5edda;
-      --parchment2: #ede0c4;
-      --parchment3: #ddd0b0;
-      --white:      #fdf8ef;
-      --shadow:     rgba(28, 16, 8, 0.18);
-      --book-green: #2a6b4a;
-      --book-green-bg: #d8ede3;
+      --ink:        #f0f0f0;
+      --ink-soft:   #888888;
+      --accent:     #d0d0d0;
+      --gold:       #ffffff;
+      --gold-light: #ffffff;
+      --parchment:  #000000;
+      --parchment2: #0d0d0d;
+      --parchment3: #222222;
+      --white:      #0a0a0a;
+      --shadow:     rgba(0, 0, 0, 0.8);
+      --book-green: #bbbbbb;
+      --book-green-bg: #181818;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -398,7 +398,7 @@
       display: none;
       position: fixed; inset: 0;
       z-index: 50;
-      background: rgba(28,16,8,0.45);
+      background: rgba(0,0,0,0.75);
       backdrop-filter: blur(3px);
       -webkit-backdrop-filter: blur(3px);
       animation: fadeIn 0.22s ease;
@@ -448,8 +448,8 @@
       margin-bottom: 8px;
     }
 
-    #detail-type-badge.poem  { background: #fce8d8; color: #7a3010; }
-    #detail-type-badge.story { background: #dde8f5; color: #1a3560; }
+    #detail-type-badge.poem  { background: #1a1a1a; color: #cccccc; }
+    #detail-type-badge.story { background: #1a1a1a; color: #cccccc; }
     #detail-type-badge.book  { background: var(--book-green-bg); color: var(--book-green); }
 
     #detail-title {
@@ -596,7 +596,7 @@
 
     #epub-toc-drawer.open {
       transform: translateX(0);
-      box-shadow: 4px 0 30px rgba(0,0,0,0.4);
+      box-shadow: 4px 0 30px rgba(0,0,0,0.9);
     }
 
     #epub-toc-backdrop {
@@ -609,7 +609,7 @@
 
     #toc-header {
       padding: 20px 18px 12px;
-      border-bottom: 1px solid rgba(200,134,42,0.3);
+      border-bottom: 1px solid rgba(255,255,255,0.1);
       flex-shrink: 0;
     }
 
@@ -646,7 +646,7 @@
     }
 
     .toc-item:active, .toc-item.active {
-      background: rgba(200,134,42,0.12);
+      background: rgba(255,255,255,0.07);
       border-left-color: var(--gold);
       color: var(--gold-light);
     }
@@ -796,7 +796,7 @@
     #loading {
       position: fixed; inset: 0;
       z-index: 100;
-      background: var(--ink);
+      background: #000000;
       display: flex; flex-direction: column;
       align-items: center; justify-content: center;
       gap: 16px;
