@@ -1023,16 +1023,6 @@ function parseCSV(text) {
   });
 }
 
-// ─── AUTHOR NEPALI NAME MAP ───────────────────────────────────────────────────
-// Built from EPUB_METADATA: maps English author name → Nepali author name
-const AUTHOR_NE_MAP = (() => {
-  const map = {};
-  Object.values(EPUB_METADATA).forEach(m => {
-    if (m.author && m.authorNe) map[m.author] = m.authorNe;
-  });
-  return map;
-})();
-
 // ─── LOAD DATA ────────────────────────────────────────────────────────────────
 async function loadData() {
   try {
@@ -1045,15 +1035,22 @@ async function loadData() {
     const [pText, sText] = await Promise.all([pRes.text(), sRes.text()]);
 
     poems = parseCSV(pText).map((r, i) => {
-      const author = r['Poet / Author'] || '';
-      const authorNe = AUTHOR_NE_MAP[author] || r['Author (Nepali)'] || '';
+      const author  = r['Poet / Author'] || '';
+      const content = r['Poem Content']  || '';
+      // Extract Nepali author name from content: the leading "NepaliName – ..." line
+      let authorNe = '';
+      const neMatch = content.replace(/\\n/g, '\n').match(/^(.+?)\s*[–-]\s+/);
+      if (neMatch) {
+        const candidate = neMatch[1].trim();
+        if (/[\u0900-\u097F]/.test(candidate)) authorNe = candidate;
+      }
       return {
         id: 'p' + i, type: 'poem',
-        title:    r['Title (English)'] || `Poem ${i+1}`,
+        title:   r['Title (English)'] || `Poem ${i+1}`,
         author,
         authorNe,
-        tags:     parseTags(r['Tags']  || ''),
-        content:  r['Poem Content']    || '',
+        tags:    parseTags(r['Tags']  || ''),
+        content,
       };
     });
 
