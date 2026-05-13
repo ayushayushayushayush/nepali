@@ -806,6 +806,61 @@
       opacity: 0.5;
     }
 
+    /* ─── GEMINI EXPLAINER ─── */
+    .gemini-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      margin-left: 8px;
+      padding: 2px 8px;
+      background: linear-gradient(135deg, #1a1a2e, #16213e);
+      border: 1px solid #4a4a8a;
+      border-radius: 20px;
+      color: #a0a8e8;
+      font-size: 9px;
+      font-family: 'Libre Baskerville', serif;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      cursor: pointer;
+      vertical-align: middle;
+      -webkit-tap-highlight-color: transparent;
+      transition: all 0.2s;
+    }
+    .gemini-btn:active { transform: scale(0.95); opacity: 0.8; }
+
+    .gemini-explanation { padding: 4px 0; }
+
+    .gemini-block {
+      margin-bottom: 24px;
+      border-left: 2px solid #3a3a6a;
+      padding-left: 14px;
+    }
+
+    .gemini-verse {
+      font-family: 'Noto Serif Devanagari', serif;
+      font-size: 15px;
+      line-height: 1.9;
+      color: var(--ink);
+      white-space: pre-wrap;
+      margin-bottom: 8px;
+    }
+
+    .gemini-explain {
+      font-family: 'Libre Baskerville', serif;
+      font-size: 13px;
+      line-height: 1.75;
+      color: var(--ink-soft);
+      font-style: italic;
+    }
+
+    .gemini-prose {
+      font-family: 'Libre Baskerville', serif;
+      font-size: 13px;
+      line-height: 1.75;
+      color: var(--ink-soft);
+      margin-bottom: 16px;
+    }
+
     /* ─── LOADING STATE ─── */
     #loading {
       position: fixed; inset: 0;
@@ -1378,7 +1433,14 @@ function openDetail(id) {
   const scroll  = document.getElementById('detail-scroll');
 
   badge.className = 'detail-type-badge ' + item.type;
-  badge.textContent = item.type === 'poem' ? '✦ Poem  ·  कविता' : '◈ Story  ·  कथा';
+  if (item.type === 'poem') {
+    badge.innerHTML = `✦ Poem &nbsp;·&nbsp; कविता <button class="gemini-btn" onclick="explainWithGemini()" title="Explain with Gemini">
+      <svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z"/><path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 0-16 8 8 0 0 1 0 16z"/><path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm4.5 13.5c-2.5 1-5 1-7.5 0C7 14 6 12.5 6 12s1-2 3-3.5c2.5-1 5-1 7.5 0C18 10 19 11.5 19 12s-1 2-2.5 3.5z"/></svg>
+      ✦ Explain
+    </button>`;
+  } else {
+    badge.textContent = '◈ Story  ·  कथा';
+  }
 
   title.textContent  = item.title;
   dateEl.textContent = '';
@@ -1393,7 +1455,9 @@ function openDetail(id) {
       displayContent = poemMatch[2].trim();
       displayAuthor = item.author ? `— ${item.author} (${nepaliName})` : `— (${nepaliName})`;
     }
-    content.innerHTML = `<div class="poem-body">${displayContent.split('\n').map(escHtml).join('\n')}</div>`;
+    currentPoemText = displayContent;
+    currentPoemTitle = item.title;
+    content.innerHTML = `<div class="poem-body" id="poem-original">${displayContent.split('\n').map(escHtml).join('\n')}</div>`;
   } else {
     const paragraphs = displayContent.split(/\n{2,}/).map(p => p.trim()).filter(Boolean);
     content.innerHTML = `<div class="story-body">${
@@ -1416,6 +1480,92 @@ function closeDetailBtn() {
 
 function closeDetail(e) {
   if (e.target === document.getElementById('detail-overlay')) closeDetailBtn();
+}
+
+// ─── GEMINI POEM EXPLAINER ─────────────────────────────────────────────────────
+let currentPoemText  = '';
+let currentPoemTitle = '';
+
+async function explainWithGemini() {
+  if (!currentPoemText) return;
+
+  const content = document.getElementById('detail-content');
+  const scroll  = document.getElementById('detail-scroll');
+
+  // Show loading state
+  content.innerHTML = `
+    <div id="gemini-loading" style="text-align:center; padding:40px 0;">
+      <div class="loader-dots" style="justify-content:center; margin-bottom:12px;"><span></span><span></span><span></span></div>
+      <div style="font-family:'Cormorant Garamond',serif; font-size:15px; color:var(--ink-soft); letter-spacing:0.04em;">Explaining with Gemini…</div>
+    </div>`;
+  scroll.scrollTop = 0;
+
+  const GEMINI_API_KEY = 'AIzaSyBRqJi6rUJCWcHjjONl6NrFNBMBBhqiHUE';
+  const prompt = `You are a Nepali literary expert. Explain this Nepali poem titled "${currentPoemTitle}" line by line (or stanza by stanza for short stanzas). 
+
+For each line or stanza, first quote it exactly as it appears, then provide a clear explanation in English of what it means, its imagery, and its significance. 
+
+Format your response as a series of blocks, each starting with the original Nepali text on its own line, followed by "→" on a new line, followed by the explanation. Separate each block with a blank line.
+
+Here is the poem:
+
+${currentPoemText}`;
+
+  try {
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+      }
+    );
+
+    if (!res.ok) throw new Error(`Gemini API error ${res.status}`);
+    const data = await res.json();
+    const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+
+    if (!rawText) throw new Error('No response from Gemini');
+
+    // Parse and render interleaved blocks
+    const blocks = rawText.split(/\n{2,}/).map(b => b.trim()).filter(Boolean);
+    let html = '<div class="gemini-explanation">';
+
+    for (const block of blocks) {
+      const arrowIdx = block.indexOf('\n→\n');
+      if (arrowIdx !== -1) {
+        const nepali = block.slice(0, arrowIdx).trim();
+        const explanation = block.slice(arrowIdx + 3).trim();
+        html += `
+          <div class="gemini-block">
+            <div class="gemini-verse">${nepali.split('\n').map(escHtml).join('\n')}</div>
+            <div class="gemini-explain">${escHtml(explanation)}</div>
+          </div>`;
+      } else {
+        // Fallback: treat whole block as explanation prose
+        html += `<div class="gemini-prose">${escHtml(block)}</div>`;
+      }
+    }
+
+    html += '</div>';
+    content.innerHTML = html;
+
+  } catch (err) {
+    content.innerHTML = `
+      <div style="padding:30px 0; text-align:center;">
+        <div style="font-size:28px; margin-bottom:10px;">⚠️</div>
+        <div style="font-family:'Noto Serif Devanagari',serif; font-size:14px; color:var(--ink-soft);">
+          Could not get explanation.<br/><span style="opacity:0.6; font-size:12px;">${escHtml(err.message)}</span>
+        </div>
+        <button onclick="restorePoem()" style="margin-top:16px; background:none; border:1px solid var(--parchment3); border-radius:6px; padding:6px 14px; color:var(--ink-soft); font-size:12px; cursor:pointer;">Show Poem</button>
+      </div>`;
+  }
+  scroll.scrollTop = 0;
+}
+
+function restorePoem() {
+  const content = document.getElementById('detail-content');
+  content.innerHTML = `<div class="poem-body" id="poem-original">${currentPoemText.split('\n').map(escHtml).join('\n')}</div>`;
 }
 
 function updateReadProgress() {
