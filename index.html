@@ -383,7 +383,90 @@
 
     .book-arrow { display: none; }
 
-    /* ─── NO RESULTS ─── */
+    /* ─── AUDIOBOOK CARD ─── */
+    .audio-card {
+      margin: 6px 14px;
+      border-radius: 8px;
+      background: var(--white);
+      box-shadow: 0 1px 6px var(--shadow);
+      cursor: pointer;
+      padding: 14px 16px;
+      transition: all 0.18s;
+      -webkit-tap-highlight-color: transparent;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      text-decoration: none;
+    }
+
+    .audio-card:active { transform: scale(0.98); }
+
+    .audio-card-icon {
+      flex-shrink: 0;
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      background: #181818;
+      border: 1px solid #2a2a2a;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px;
+    }
+
+    .audio-card-body { flex: 1; min-width: 0; }
+
+    .audio-card-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 19px;
+      font-weight: 600;
+      color: var(--ink);
+      line-height: 1.3;
+      margin-bottom: 3px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .audio-card-meta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .audio-card-author {
+      font-family: 'Libre Baskerville', serif;
+      font-size: 13px;
+      color: var(--accent);
+      font-style: italic;
+    }
+
+    .audio-card-parts {
+      font-size: 10px;
+      color: var(--ink-soft);
+      opacity: 0.5;
+      font-family: 'Libre Baskerville', serif;
+      letter-spacing: 0.04em;
+    }
+
+    .audio-card-english {
+      margin-top: 3px;
+      font-size: 11px;
+      color: var(--ink-soft);
+      opacity: 0.55;
+      font-family: 'Libre Baskerville', serif;
+      font-style: italic;
+    }
+
+    .audio-ext-icon {
+      flex-shrink: 0;
+      font-size: 18px;
+      opacity: 0.3;
+    }
+
+    #detail-type-badge.audiobook { background: #181818; color: #aaaaaa; }
+
+
     .no-results { padding: 60px 24px; text-align: center; }
     .no-results .icon { font-size: 40px; margin-bottom: 12px; }
     .no-results p {
@@ -941,6 +1024,9 @@
       <button class="tab-btn" data-tab="books" onclick="switchTab('books')">
         पुस्तकहरू <span class="dev-label">Books</span>
       </button>
+      <button class="tab-btn" data-tab="audiobooks" onclick="switchTab('audiobooks')">
+        श्रव्य <span class="dev-label">Audio</span>
+      </button>
     </div>
   </div>
 
@@ -1026,6 +1112,7 @@
 let poems      = [];
 let stories    = [];
 let books      = [];
+let audiobooks = [];
 let currentTab = 'poems';
 let searchQuery = '';
 
@@ -1118,6 +1205,7 @@ async function loadData() {
     }));
 
     await loadBookList();
+    loadAudiobooks();
     hideLoading();
     renderList();
   } catch (e) {
@@ -1225,7 +1313,172 @@ const EPUB_METADATA = {
   'tyag-ra-udayako-yugal-prakash': { title: 'Tyag ra Udayako Yugal Prakash', titleNe: 'त्याग र उदयको युगल प्रकाश', author: 'Kavi Shiromani Lekhnath Paudyal', authorNe: 'कवि शिरोमणि लेखनाथ पौड्याल' },
 };
 
-function epubFilenameToTitle(filename) {
+// ─── AUDIOBOOK LIST ───────────────────────────────────────────────────────────
+const AUDIOBOOK_LIST = [
+  { title: '19 Number  Skhalan  Anamol Mani Poudel', titleNe: '19 Number  Skhalan  Anamol Mani Poudel', authorNe: '', author: '', parts: 1, driveUrl: 'https://drive.google.com/drive/folders/1LC-7vw6pD2wPgWX-wr8rZfGf4YhSTwtO' },
+  { title: 'Aaja Ramita Cha  Indra Bahadhur Rai', titleNe: 'Aaja Ramita Cha  Indra Bahadhur Rai', authorNe: '', author: '', parts: 5, driveUrl: 'https://drive.google.com/drive/folders/1x6PbcMZOsQHIKdeglyq2_PDu-pcHEXEn' },
+  { title: 'Aakarharu ra Chhaayaaharu  Nepali Story', titleNe: 'Aakarharu ra Chhaayaaharu  Nepali Story', authorNe: '', author: '', parts: 1, driveUrl: 'https://drive.google.com/drive/folders/19OSSteqd86M4h81fOKV3BZ-ATdJNhsV0' },
+  { title: 'Aarli Bhai', titleNe: 'Aarli Bhai', authorNe: '', author: '', parts: 3, driveUrl: 'https://drive.google.com/drive/folders/1oy3Y8jaHTwaXL076MyNjmJHHBzKlNpk7' },
+  { title: 'Abhisapta  Sambandhahin Sambandha haru', titleNe: 'Abhisapta  Sambandhahin Sambandha haru', authorNe: '', author: '', parts: 1, driveUrl: 'https://drive.google.com/drive/folders/1xsJOpDlKS4xna9pN4RiOaH2LA3t869QG' },
+  { title: 'Abiral Bagdachha Indrawati', titleNe: 'Abiral Bagdachha Indrawati', authorNe: '', author: '', parts: 44, driveUrl: 'https://drive.google.com/drive/folders/1iMIUfZE2CfvEr_Pk6yrZ0uUvHA1pkhRE' },
+  { title: 'Abstract Chintan Pyaj', titleNe: 'Abstract Chintan Pyaj', authorNe: '', author: '', parts: 3, driveUrl: 'https://drive.google.com/drive/folders/1Z0XVPmPiHNB_jTSoqQdF5qWvDh129Bw1' },
+  { title: 'Affairgunj', titleNe: 'Affairgunj', authorNe: '', author: '', parts: 1, driveUrl: 'https://drive.google.com/drive/folders/1sQTa2kekOhJNzwbO81jgQB5xssmoZWjU' },
+  { title: 'Agnibatika', titleNe: 'Agnibatika', authorNe: '', author: '', parts: 13, driveUrl: 'https://drive.google.com/drive/folders/1p2nloD6J9ws1T9jXdQLCXdkEOe17G7qT' },
+  { title: 'Akhet', titleNe: 'Akhet', authorNe: '', author: '', parts: 8, driveUrl: 'https://drive.google.com/drive/folders/1w6d0PkaEaB9CAarlUnlRV1SySdtxMLaG' },
+  { title: 'Anabrit', titleNe: 'Anabrit', authorNe: '', author: '', parts: 12, driveUrl: 'https://drive.google.com/drive/folders/1nI2BuVvPnVsltuJRfg9-KjLgTDmX_eJy' },
+  { title: 'Antarman ko Yatra', titleNe: 'Antarman ko Yatra', authorNe: '', author: '', parts: 15, driveUrl: 'https://drive.google.com/drive/folders/1nN-jt3p8gf9ZejLYLJVUiznUqFjb8ktX' },
+  { title: 'Anuradha', titleNe: 'Anuradha', authorNe: '', author: '', parts: 8, driveUrl: 'https://drive.google.com/drive/folders/1u9VrM9OPEoKqWmZXQSh_QfC69xzBYdVZ' },
+  { title: 'Arki Aimai', titleNe: 'Arki Aimai', authorNe: '', author: '', parts: 10, driveUrl: 'https://drive.google.com/drive/folders/1W0tNivxY2oD4t46aUN9t34AKVmCjIoZ_' },
+  { title: 'Arko Jeevan  Nepal Story', titleNe: 'Arko Jeevan  Nepal Story', authorNe: '', author: '', parts: 1, driveUrl: 'https://drive.google.com/drive/folders/1GtcORo-4qZdTcoV6D_YRkQbrzJ0p6WZo' },
+  { title: 'Atma Britanta', titleNe: 'Atma Britanta', authorNe: '', author: '', parts: 5, driveUrl: 'https://drive.google.com/drive/folders/1efNwEOSOq56OpRRO5C6-pYP3-qWZZv4E' },
+  { title: 'Atripta Garbhadhan', titleNe: 'Atripta Garbhadhan', authorNe: '', author: '', parts: 6, driveUrl: 'https://drive.google.com/drive/folders/1thoz5TlQtKuIPMgMjlkdPBvuhNa9i5v8' },
+  { title: 'Babu aama ra Chora', titleNe: 'Babu aama ra Chora', authorNe: '', author: '', parts: 7, driveUrl: 'https://drive.google.com/drive/folders/1IrprGeNxj1WR-HKmXg5hv9wXjE6ZZvYd' },
+  { title: 'Barbarik', titleNe: 'Barbarik', authorNe: '', author: '', parts: 6, driveUrl: 'https://drive.google.com/drive/folders/1Bz2aJZiDvKisiH7GUYRm5YlF4GgPQ7q9' },
+  { title: 'Bhok Ra Bhittaharu', titleNe: 'Bhok Ra Bhittaharu', authorNe: '', author: '', parts: 15, driveUrl: 'https://drive.google.com/drive/folders/1MQ6cSF89206J6CyZ8-GGtBu6f0pf5RD8' },
+  { title: 'Budhan ko Ghodi', titleNe: 'Budhan ko Ghodi', authorNe: '', author: '', parts: 2, driveUrl: 'https://drive.google.com/drive/folders/1llWU6YLEMC6VJILCPco4eUbNnie8exnr' },
+  { title: 'Budho Kusumko Rukh  Duri Parda Bhitra Parda Bahira  Aawaz', titleNe: 'Budho Kusumko Rukh  Duri Parda Bhitra Parda Bahira  Aawaz', authorNe: '', author: '', parts: 1, driveUrl: 'https://drive.google.com/drive/folders/1FBC61vouYanvt4Hp0Ez0DMjy4g6QHwfW' },
+  { title: 'Chapaiyeka Anuhar', titleNe: 'Chapaiyeka Anuhar', authorNe: '', author: '', parts: 9, driveUrl: 'https://drive.google.com/drive/folders/1h1RGXNgtpMX-jeLZBJhr2Z4Y309zT5Wi' },
+  { title: 'Chat Girl', titleNe: 'Chat Girl', authorNe: '', author: '', parts: 2, driveUrl: 'https://drive.google.com/drive/folders/1u6GUzdD9yZlGtf3lmuUItHqgH4iaLQnj' },
+  { title: 'China Harayeko Manche', titleNe: 'China Harayeko Manche', authorNe: '', author: '', parts: 15, driveUrl: 'https://drive.google.com/drive/folders/1l2eut4mJnx0dkO0-ZqSkY5DNIbZZPKKZ' },
+  { title: 'Chiso Gham  Pratirup  Parai Aama  Saru Pokhrel', titleNe: 'Chiso Gham  Pratirup  Parai Aama  Saru Pokhrel', authorNe: '', author: '', parts: 1, driveUrl: 'https://drive.google.com/drive/folders/1Bbxzua0StYgr33bXfmsgAryAYc_FwoxD' },
+  { title: 'Chita Mathi ko Bihani  Kahile Banda Nahune Dhoka  Chita Mathiko Bihani', titleNe: 'Chita Mathi ko Bihani  Kahile Banda Nahune Dhoka  Chita Mathiko Bihani', authorNe: '', author: '', parts: 1, driveUrl: 'https://drive.google.com/drive/folders/1h71tLbFGO3Q2P6TMidNz8n0cyoQbLT6N' },
+  { title: 'Chuki  Nepali Story', titleNe: 'Chuki  Nepali Story', authorNe: '', author: '', parts: 1, driveUrl: 'https://drive.google.com/drive/folders/1wA6Amk77ycyFy2TU03SrHw5MpJ5op670' },
+  { title: 'Chuli', titleNe: 'Chuli', authorNe: '', author: '', parts: 3, driveUrl: 'https://drive.google.com/drive/folders/1VyH_Ew0GA9K42UQx1-5YIVnQKHFUgvu7' },
+  { title: 'Chyatna nasakeko chitthi', titleNe: 'Chyatna nasakeko chitthi', authorNe: '', author: '', parts: 0, driveUrl: 'https://drive.google.com/drive/folders/1pdt8_AgkYnlhXqfLoObqAru0eP_Gv3pK' },
+  { title: 'Comrade Anjana  Nepali Story', titleNe: 'Comrade Anjana  Nepali Story', authorNe: '', author: '', parts: 1, driveUrl: 'https://drive.google.com/drive/folders/12jOzo8ZsEKloavE9T23y8vQ1LuBZ_deX' },
+  { title: 'Comrade Anjana and Chuki  Nepali Story', titleNe: 'Comrade Anjana and Chuki  Nepali Story', authorNe: '', author: '', parts: 1, driveUrl: 'https://drive.google.com/drive/folders/1ypmWZKXyuun88RRthDWB_LDM37nJ7iC8' },
+  { title: 'Dallo and Flight Number 717  Lenin Banjade', titleNe: 'Dallo and Flight Number 717  Lenin Banjade', authorNe: '', author: '', parts: 1, driveUrl: 'https://drive.google.com/drive/folders/1A--EB0xDI1UPtEwdwqxE5KBeh9CtKjfz' },
+  { title: 'Damini Bhir', titleNe: 'Damini Bhir', authorNe: '', author: '', parts: 14, driveUrl: 'https://drive.google.com/drive/folders/1c6OfjIjEaEVKROezpZqzCDMMN4P2VlR1' },
+  { title: 'Darbar Bahiraki Maharani', titleNe: 'Darbar Bahiraki Maharani', authorNe: '', author: '', parts: 12, driveUrl: 'https://drive.google.com/drive/folders/17LfQV9nM__x8JNELJyo7AMN5tIDj0qP8' },
+  { title: 'Deshle Hareko Yudha', titleNe: 'Deshle Hareko Yudha', authorNe: '', author: '', parts: 6, driveUrl: 'https://drive.google.com/drive/folders/1jS7I3ieDdvWiV6oZqBy4_zQGvFfqI5Tv' },
+  { title: 'Deuki', titleNe: 'Deuki', authorNe: '', author: '', parts: 1, driveUrl: 'https://drive.google.com/drive/folders/1k9pkfkM_of1rzPl2BtwSdgjzMKpTCNqH' },
+  { title: 'Dhamboji Chok', titleNe: 'Dhamboji Chok', authorNe: '', author: '', parts: 1, driveUrl: 'https://drive.google.com/drive/folders/18XEXLlw1wxYtfbttr2CXADsXb9EDBNIM' },
+  { title: 'Divaswapna', titleNe: 'Divaswapna', authorNe: '', author: '', parts: 4, driveUrl: 'https://drive.google.com/drive/folders/1BDCTKAUCj7y5fAIAlNbZRZK1MsVmbX1N' },
+  { title: 'Dristi  Nepali Story', titleNe: 'Dristi  Nepali Story', authorNe: '', author: '', parts: 1, driveUrl: 'https://drive.google.com/drive/folders/1B6JAnGN6RhELhLQRZS-sZAer4DG4vFOp' },
+  { title: 'Durbhikshya', titleNe: 'Durbhikshya', authorNe: '', author: '', parts: 0, driveUrl: 'https://drive.google.com/drive/folders/1B8NeP-mAkFWXvYsu673R2Cxeq0fFSHA-' },
+  { title: 'Dwanda ko Abasan', titleNe: 'Dwanda ko Abasan', authorNe: '', author: '', parts: 4, driveUrl: 'https://drive.google.com/drive/folders/1aP4UdbU4jguUj2-WAiAcMTK-f6bU2QXQ' },
+  { title: 'Eleven Minutes', titleNe: 'Eleven Minutes', authorNe: '', author: '', parts: 10, driveUrl: 'https://drive.google.com/drive/folders/1NR3zhTiAO8oZRuALmHLer5yg5X4Ahtbi' },
+  { title: 'Faliyeko Saman', titleNe: 'Faliyeko Saman', authorNe: '', author: '', parts: 18, driveUrl: 'https://drive.google.com/drive/folders/1Cwj2QVD6V_1V8VecjqS1yzeJX-N5S7do' },
+  { title: 'Fatemako Anido Raat  Christina at the Rate  Mrityu Mela  Raju Babu Shrestha', titleNe: 'Fatemako Anido Raat  Christina at the Rate  Mrityu Mela  Raju Babu Shrestha', authorNe: '', author: '', parts: 1, driveUrl: 'https://drive.google.com/drive/folders/1cQS8oEao86041osP1_OG8sI8yacx00jt' },
+  { title: 'Franseli Premi', titleNe: 'Franseli Premi', authorNe: '', author: '', parts: 13, driveUrl: 'https://drive.google.com/drive/folders/1pic1ww98Z879eLy6VBCS53x5GejSzodl' },
+  { title: 'Gham ka Paila Haru', titleNe: 'Gham ka Paila Haru', authorNe: '', author: '', parts: 15, driveUrl: 'https://drive.google.com/drive/folders/1Zx1AB4fAGTX7P4TgTNpm95sg4HiFCqLC' },
+  { title: 'Ghanashyam Pathik', titleNe: 'Ghanashyam Pathik', authorNe: '', author: '', parts: 9, driveUrl: 'https://drive.google.com/drive/folders/1MeF19KxxDJV_pC0U04sQO2oWVTAlMvA6' },
+  { title: 'Ghat Pratighat  Jindagi, a Time Bomb  Dhurba Sapkota', titleNe: 'Ghat Pratighat  Jindagi, a Time Bomb  Dhurba Sapkota', authorNe: '', author: '', parts: 1, driveUrl: 'https://drive.google.com/drive/folders/1m8dXZpGQjfUHJGbj-vDtJYs93hP7xotS' },
+  { title: 'Ghoda  Santule Chakai', titleNe: 'Ghoda  Santule Chakai', authorNe: '', author: '', parts: 1, driveUrl: 'https://drive.google.com/drive/folders/1ljGY0j9YHNyWh432yd1e97M47KSmgsxA' },
+  { title: 'Godhuli Sansar', titleNe: 'Godhuli Sansar', authorNe: '', author: '', parts: 5, driveUrl: 'https://drive.google.com/drive/folders/1ybrWbyR__nAgu1iu33_3xMGs79Vs9dJ3' },
+  { title: 'Gularko Phool', titleNe: 'Gularko Phool', authorNe: '', author: '', parts: 16, driveUrl: 'https://drive.google.com/drive/folders/1HRqiVxFEyIYsea3jILD1WpWrxfLerstm' },
+  { title: 'Hajur Aama Ko Katha', titleNe: 'Hajur Aama Ko Katha', authorNe: '', author: '', parts: 6, driveUrl: 'https://drive.google.com/drive/folders/1l-U8KREM9X4JAlMDOb8czWiXVKEjz-pa' },
+  { title: 'Jadau Malik', titleNe: 'Jadau Malik', authorNe: '', author: '', parts: 14, driveUrl: 'https://drive.google.com/drive/folders/1trUDR1TPwlHXSLzdz2L0m4sqWP7RiYcG' },
+  { title: 'Jhajhalkaharu', titleNe: 'Jhajhalkaharu', authorNe: '', author: '', parts: 8, driveUrl: 'https://drive.google.com/drive/folders/1q4RV7fsQxgxMMWAqYnLNuQQvpl9G0gef' },
+  { title: 'Jhareko Paat', titleNe: 'Jhareko Paat', authorNe: '', author: '', parts: 6, driveUrl: 'https://drive.google.com/drive/folders/1O-4XqAzgCXITqS8MsyG5PSqajJwCnb-Z' },
+  { title: 'Jhola', titleNe: 'Jhola', authorNe: '', author: '', parts: 3, driveUrl: 'https://drive.google.com/drive/folders/1Z9avLrCGg_5ikQm-cnTASXeGeW8ht9-v' },
+  { title: 'Jhunu Maiya', titleNe: 'Jhunu Maiya', authorNe: '', author: '', parts: 1, driveUrl: 'https://drive.google.com/drive/folders/1bfMB7HTuBXavTPI_v_qXE5RRhtUCvt5q' },
+  { title: 'Junkiri ko Sangeet', titleNe: 'Junkiri ko Sangeet', authorNe: '', author: '', parts: 24, driveUrl: 'https://drive.google.com/drive/folders/1w1sv_rPDWUR3CMA_wP9gNAIgmRUdDkxa' },
+  { title: 'Kabi ek Rekhachitra  Comrade ek Kathaharu', titleNe: 'Kabi ek Rekhachitra  Comrade ek Kathaharu', authorNe: '', author: '', parts: 1, driveUrl: 'https://drive.google.com/drive/folders/1Y0J3ndqC7QJ5LFWZI2dyGY24y30ETka_' },
+  { title: 'Kaidi Number 11  Janmina Napayeka Nani Haru', titleNe: 'Kaidi Number 11  Janmina Napayeka Nani Haru', authorNe: '', author: '', parts: 1, driveUrl: 'https://drive.google.com/drive/folders/1dI1Wcul1O-zlhohuRZMg3kJ3Ry4PYMoh' },
+  { title: 'Kalo Pot  Ragatle Latpatieka Jijibisha  Daulat Bikram Bista', titleNe: 'Kalo Pot  Ragatle Latpatieka Jijibisha  Daulat Bikram Bista', authorNe: '', author: '', parts: 1, driveUrl: 'https://drive.google.com/drive/folders/18Njhk95D4cNIxyvVQEb7OOWtvL5pK-rs' },
+  { title: 'Kandaaghari Kaa Phool Haru', titleNe: 'Kandaaghari Kaa Phool Haru', authorNe: '', author: '', parts: 3, driveUrl: 'https://drive.google.com/drive/folders/1vdwN3QN5IkDu_Yhl8scPab-NERFU-0Y_' },
+  { title: 'Karagar', titleNe: 'Karagar', authorNe: '', author: '', parts: 3, driveUrl: 'https://drive.google.com/drive/folders/1JBtjtpBGTBVUEc7IwpCopAA6xAatlnGQ' },
+  { title: 'Karma', titleNe: 'Karma', authorNe: '', author: '', parts: 10, driveUrl: 'https://drive.google.com/drive/folders/1G5Tt9RKh7uDGmANzQbdkk6z12PLDxMxM' },
+  { title: 'Karnali Blues', titleNe: 'Karnali Blues', authorNe: '', author: '', parts: 19, driveUrl: 'https://drive.google.com/drive/folders/1qU0MZnNQVrKNb2AwO3kx3_lKb5-PCwfk' },
+  { title: 'Karodau Kasturi', titleNe: 'Karodau Kasturi', authorNe: '', author: '', parts: 1, driveUrl: 'https://drive.google.com/drive/folders/1JiBX0K80qUwvI8ZefmRTXeh77KOkxU43' },
+  { title: 'Kathmandu Selfie', titleNe: 'Kathmandu Selfie', authorNe: '', author: '', parts: 3, driveUrl: 'https://drive.google.com/drive/folders/13e4v26XA3Z9XP9-XNIPzjY9hiGFPCCBu' },
+  { title: 'Lahure Bhaisi', titleNe: 'Lahure Bhaisi', authorNe: '', author: '', parts: 0, driveUrl: 'https://drive.google.com/drive/folders/1qafiLPLXZvLZnEAn4hVnMzGk8x5bNqIT' },
+  { title: 'Laila Majnu', titleNe: 'Laila Majnu', authorNe: '', author: '', parts: 3, driveUrl: 'https://drive.google.com/drive/folders/1D0pnI6c7fN1Oggi7ARqKpyCNqnjVKUwR' },
+  { title: 'Lakure Pheri Phulne Cha  Nepali Story', titleNe: 'Lakure Pheri Phulne Cha  Nepali Story', authorNe: '', author: '', parts: 1, driveUrl: 'https://drive.google.com/drive/folders/1c0FR8q8QAhHZ6qEWruGWR6l09mx7P7i9' },
+  { title: 'Lal Chudi  Krishna Abiral', titleNe: 'Lal Chudi  Krishna Abiral', authorNe: '', author: '', parts: 9, driveUrl: 'https://drive.google.com/drive/folders/1gjNlLuLcqrDrN1m0jQkclWTafdEvJigq' },
+  { title: 'Laltin Ko Ujyaloma', titleNe: 'Laltin Ko Ujyaloma', authorNe: '', author: '', parts: 10, driveUrl: 'https://drive.google.com/drive/folders/1pLnTLYskQTMnCWidpT7QP_G0GzMfdWy0' },
+  { title: 'Likhe Novel  Sarad Poudel', titleNe: 'Likhe Novel  Sarad Poudel', authorNe: '', author: '', parts: 16, driveUrl: 'https://drive.google.com/drive/folders/1HASCaNxmkmN5apSryGI0fRihfsyWT_yE' },
+  { title: 'Living Together  Nepali Story', titleNe: 'Living Together  Nepali Story', authorNe: '', author: '', parts: 1, driveUrl: 'https://drive.google.com/drive/folders/1djhjm7rH96VE5-zmMZ8pM9EStiUP_GHT' },
+  { title: 'Location', titleNe: 'Location', authorNe: '', author: '', parts: 1, driveUrl: 'https://drive.google.com/drive/folders/1HH_-K_Ll2MuRR1dGcOTM2fMuj0LWQoIS' },
+  { title: 'Lolita', titleNe: 'Lolita', authorNe: '', author: '', parts: 6, driveUrl: 'https://drive.google.com/drive/folders/1X0AQDGrd4F_ArwblGGS9qu0_MOduVUd4' },
+  { title: 'Lu Novel', titleNe: 'Lu Novel', authorNe: '', author: '', parts: 10, driveUrl: 'https://drive.google.com/drive/folders/1mru4nkC9sL1WxZvBnOuY_-9yFJTjDOEl' },
+  { title: 'Ma Hideko Bato', titleNe: 'Ma Hideko Bato', authorNe: '', author: '', parts: 0, driveUrl: 'https://drive.google.com/drive/folders/1J6gtj8QZPv2fcNz-LcmP-FsQV6HaVQSk' },
+  { title: 'Maha Ko Ma', titleNe: 'Maha Ko Ma', authorNe: '', author: '', parts: 2, driveUrl: 'https://drive.google.com/drive/folders/1XPtV7SnnjMVLKxTZqqHmB20a3afbuQBW' },
+  { title: 'Maile Saritako Hatya Garidiye', titleNe: 'Maile Saritako Hatya Garidiye', authorNe: '', author: '', parts: 1, driveUrl: 'https://drive.google.com/drive/folders/1EccNkwnJkttHu1mpSgyXmybOroMrEYD3' },
+  { title: 'Maiya', titleNe: 'Maiya', authorNe: '', author: '', parts: 2, driveUrl: 'https://drive.google.com/drive/folders/1d96BILW7xOrk9Yw5PUnpp7a_enBEsyH2' },
+  { title: 'Mantha Darayeko Juug', titleNe: 'Mantha Darayeko Juug', authorNe: '', author: '', parts: 15, driveUrl: 'https://drive.google.com/drive/folders/1IQdJzBUG-oi49ZJ3-0OCEpv5bQio1FZz' },
+  { title: 'Meera', titleNe: 'Meera', authorNe: '', author: '', parts: 10, driveUrl: 'https://drive.google.com/drive/folders/1WmPrSAxcMoHhipVeFnL_UW9d-PID0I9-' },
+  { title: 'Muglaan', titleNe: 'Muglaan', authorNe: '', author: '', parts: 0, driveUrl: 'https://drive.google.com/drive/folders/1jKNs8SyejODJb18dAkv3kiSOuWaPuHLt' },
+  { title: 'Muluk Bahira Ma', titleNe: 'Muluk Bahira Ma', authorNe: '', author: '', parts: 9, driveUrl: 'https://drive.google.com/drive/folders/1DyzoP1yHnxEfdOLFA74xrxYYYQ1gjKfy' },
+  { title: 'Naagpash', titleNe: 'Naagpash', authorNe: '', author: '', parts: 1, driveUrl: 'https://drive.google.com/drive/folders/1KZ7MLXbzRgWhQGc9uXToFy-BV06R28TR' },
+  { title: 'Nasho', titleNe: 'Nasho', authorNe: '', author: '', parts: 1, driveUrl: 'https://drive.google.com/drive/folders/136g0UY_clNmKxrHTVZCcT7yP42OboA1j' },
+  { title: 'Naughreko June', titleNe: 'Naughreko June', authorNe: '', author: '', parts: 5, driveUrl: 'https://drive.google.com/drive/folders/18z-mcKljwq0q0zpdXBqB700lD4TwVDaV' },
+  { title: 'Neela Aakhwali', titleNe: 'Neela Aakhwali', authorNe: '', author: '', parts: 0, driveUrl: 'https://drive.google.com/drive/folders/1ywt4KhyiYUSZFZmbpH8SbGjtXgRXroRd' },
+  { title: 'Nepali Story  Laghu Katha  Short Story', titleNe: 'Nepali Story  Laghu Katha  Short Story', authorNe: '', author: '', parts: 0, driveUrl: 'https://drive.google.com/drive/folders/1819mpcJGb-aH4ZCb0kxGfC5N7djenVz2' },
+  { title: 'Nihau Nameste', titleNe: 'Nihau Nameste', authorNe: '', author: '', parts: 4, driveUrl: 'https://drive.google.com/drive/folders/1bFDgH42Uy69YaLCIYprqkFOadEoOB5P3' },
+  { title: 'Nilo Trishna  Nepali Story', titleNe: 'Nilo Trishna  Nepali Story', authorNe: '', author: '', parts: 1, driveUrl: 'https://drive.google.com/drive/folders/1IdS5RshV8-zeDxoDdtkk__qtypH2cxi6' },
+  { title: 'Nilo Trishna, Niskarsha', titleNe: 'Nilo Trishna, Niskarsha', authorNe: '', author: '', parts: 1, driveUrl: 'https://drive.google.com/drive/folders/1B8DXHxJNkti9QJ6ZVx9w-PNYKpU5544j' },
+  { title: 'Niskarsa  Nepali Story', titleNe: 'Niskarsa  Nepali Story', authorNe: '', author: '', parts: 1, driveUrl: 'https://drive.google.com/drive/folders/1zAtUvt6tf12uEufhLWEsGKqR3m5bVHEP' },
+  { title: 'Ojhel', titleNe: 'Ojhel', authorNe: '', author: '', parts: 4, driveUrl: 'https://drive.google.com/drive/folders/1apojFCdJ_IKyLmzEtsCPB_4zVPLaxwMX' },
+  { title: 'Pagal Basti', titleNe: 'Pagal Basti', authorNe: '', author: '', parts: 15, driveUrl: 'https://drive.google.com/drive/folders/1gr4t9XyEOouAk6Fk1b8PN-xLFjOD6Bpm' },
+  { title: 'Paheli', titleNe: 'Paheli', authorNe: '', author: '', parts: 5, driveUrl: 'https://drive.google.com/drive/folders/1L9uxhKRz6BpZjJWl5kZNG5vAPElbTk-C' },
+  { title: 'Pallo Gharko Jhyal', titleNe: 'Pallo Gharko Jhyal', authorNe: '', author: '', parts: 5, driveUrl: 'https://drive.google.com/drive/folders/1EzDuuGO8awcwF3CRqpNM01H8k3ikhQW-' },
+  { title: 'Palpasa Cafe', titleNe: 'Palpasa Cafe', authorNe: '', author: '', parts: 8, driveUrl: 'https://drive.google.com/drive/folders/1yneHGo5uZDNMWEC2KV_V5Y2mwtIdPic1' },
+  { title: 'Paniko Gham', titleNe: 'Paniko Gham', authorNe: '', author: '', parts: 1, driveUrl: 'https://drive.google.com/drive/folders/145e-OGHIR9rVmgyLGKc3wEOMo26Vn4fB' },
+  { title: 'Paribhasit Aakhaharu', titleNe: 'Paribhasit Aakhaharu', authorNe: '', author: '', parts: 0, driveUrl: 'https://drive.google.com/drive/folders/1W4E54C0V6s5i28yqJ86moDuQx7B6CuNO' },
+  { title: 'Parikrama Annapurna', titleNe: 'Parikrama Annapurna', authorNe: '', author: '', parts: 1, driveUrl: 'https://drive.google.com/drive/folders/1vbNJFiPj0-lhZIafrzAru5jfCtYsPLol' },
+  { title: 'Pema Bhauju  Grihayuddha ko Ghau katha sangraha', titleNe: 'Pema Bhauju  Grihayuddha ko Ghau katha sangraha', authorNe: '', author: '', parts: 1, driveUrl: 'https://drive.google.com/drive/folders/1OuIS9s76PbvkvvHiSwSyLWlLNGoXaGHI' },
+  { title: 'Post Martum  Nepali Story', titleNe: 'Post Martum  Nepali Story', authorNe: '', author: '', parts: 1, driveUrl: 'https://drive.google.com/drive/folders/1bSix8oQ7GHWIH9qBTUR8zE9b7EO_ZHdT' },
+  { title: 'Prastab Prem', titleNe: 'Prastab Prem', authorNe: '', author: '', parts: 1, driveUrl: 'https://drive.google.com/drive/folders/1c31Kd2yrMzUyA2pb4X49E4L13D9GxtzV' },
+  { title: 'Pyaas Bhitrako Bidroha', titleNe: 'Pyaas Bhitrako Bidroha', authorNe: '', author: '', parts: 5, driveUrl: 'https://drive.google.com/drive/folders/111kgiuei013OL1smOc6HMLVvT80ZzBU0' },
+  { title: 'Ramila Nani', titleNe: 'Ramila Nani', authorNe: '', author: '', parts: 11, driveUrl: 'https://drive.google.com/drive/folders/1fsn8Q2tWRiPZNi-JZ3fc70S1vKnYrAzd' },
+  { title: 'Red Square', titleNe: 'Red Square', authorNe: '', author: '', parts: 6, driveUrl: 'https://drive.google.com/drive/folders/1GBkhp_sNF6ZpTQ22oIQRHd95CKfIF5Q7' },
+  { title: 'Romeo and Juliet', titleNe: 'Romeo and Juliet', authorNe: '', author: '', parts: 1, driveUrl: 'https://drive.google.com/drive/folders/1uqexpzP0xbF5jAbs_OoWPiLY8cGVen10' },
+  { title: 'Sabiti Novel', titleNe: 'Sabiti Novel', authorNe: '', author: '', parts: 4, driveUrl: 'https://drive.google.com/drive/folders/1euIOaCt8OWhESnmUeEPer-IbU-XFzF3p' },
+  { title: 'Sadak Ra Pratibha', titleNe: 'Sadak Ra Pratibha', authorNe: '', author: '', parts: 1, driveUrl: 'https://drive.google.com/drive/folders/1HDW5cqs3v6vx21yHVPGW7dL3IrqaP2v1' },
+  { title: 'Sahar Ko Katha', titleNe: 'Sahar Ko Katha', authorNe: '', author: '', parts: 9, driveUrl: 'https://drive.google.com/drive/folders/1Fzk8ANui1wJ4FbBnIgMYVOD5RfNff-oN' },
+  { title: 'Saharko Khojima  Ujyalo Tira  Euta Antya', titleNe: 'Saharko Khojima  Ujyalo Tira  Euta Antya', authorNe: '', author: '', parts: 2, driveUrl: 'https://drive.google.com/drive/folders/1CNtV0BD8ulGjNDyMr31QW4S_JZW_yotF' },
+  { title: 'Sakas', titleNe: 'Sakas', authorNe: '', author: '', parts: 14, driveUrl: 'https://drive.google.com/drive/folders/1YxO9rKuZ2XSsMcHtNu7PXRajCoqEw8Jm' },
+  { title: 'Samaya Trasadi', titleNe: 'Samaya Trasadi', authorNe: '', author: '', parts: 0, driveUrl: 'https://drive.google.com/drive/folders/1vtKVos3xxo4RtgLZZeloDo098CkJmOWK' },
+  { title: 'Sanskar  Bhoot  Rajendra Bimal ka Kathaharu', titleNe: 'Sanskar  Bhoot  Rajendra Bimal ka Kathaharu', authorNe: '', author: '', parts: 1, driveUrl: 'https://drive.google.com/drive/folders/1I00odIJW8pCf1YuV6NvHoYWK6wXUE6r4' },
+  { title: 'Santa Gatha', titleNe: 'Santa Gatha', authorNe: '', author: '', parts: 26, driveUrl: 'https://drive.google.com/drive/folders/17z3bAjQX5qZsx4_h4a3bPCMLRLTPZbIw' },
+  { title: 'Sarsarti Sansar', titleNe: 'Sarsarti Sansar', authorNe: '', author: '', parts: 10, driveUrl: 'https://drive.google.com/drive/folders/1o0in5kQ_HXk0k5yhEzULiGWDgPm_O7Z3' },
+  { title: 'Saya Novel', titleNe: 'Saya Novel', authorNe: '', author: '', parts: 12, driveUrl: 'https://drive.google.com/drive/folders/1bVATj3wJ2VHkeJLW-UJR8HdRy81IRpX4' },
+  { title: 'Seto Bagh', titleNe: 'Seto Bagh', authorNe: '', author: '', parts: 4, driveUrl: 'https://drive.google.com/drive/folders/1l9mQ1inJwoTetrSBk7asbWvBJQlCYDRI' },
+  { title: 'Seto Dharti', titleNe: 'Seto Dharti', authorNe: '', author: '', parts: 27, driveUrl: 'https://drive.google.com/drive/folders/1TuhOR_dVDFIdfOWdDcR1XmBzdKb_jDDC' },
+  { title: 'Shanta', titleNe: 'Shanta', authorNe: '', author: '', parts: 13, driveUrl: 'https://drive.google.com/drive/folders/1Y1pfHVvhWRdvP1fJTUOzD7TvDMaZC9yH' },
+  { title: 'Shirish ko Phool', titleNe: 'Shirish ko Phool', authorNe: '', author: '', parts: 5, driveUrl: 'https://drive.google.com/drive/folders/1GbZcxClkBCDAkPZJFyNtJR1VlDSIMh-Q' },
+  { title: 'Siddhartha Novel', titleNe: 'Siddhartha Novel', authorNe: '', author: '', parts: 11, driveUrl: 'https://drive.google.com/drive/folders/1aKyTbVfDhUXvOHHomOJmu4zi-72G5okF' },
+  { title: 'Soch  Karna Shakya', titleNe: 'Soch  Karna Shakya', authorNe: '', author: '', parts: 7, driveUrl: 'https://drive.google.com/drive/folders/1nNwTUCeW7_qOohxxC5CAxZ8YXx5sRBbb' },
+  { title: 'Story of Maxim Gorky', titleNe: 'Story of Maxim Gorky', authorNe: '', author: '', parts: 0, driveUrl: 'https://drive.google.com/drive/folders/1njdAjast0kwlW_R45w73kQerpOfSPApA' },
+  { title: 'Subarnalata', titleNe: 'Subarnalata', authorNe: '', author: '', parts: 11, driveUrl: 'https://drive.google.com/drive/folders/1JURrBefnnQPDSjzC8NdzIzo9ZhcrouYI' },
+  { title: 'Summer Love', titleNe: 'Summer Love', authorNe: '', author: '', parts: 13, driveUrl: 'https://drive.google.com/drive/folders/18nu37PC1Zoq0IxYCJoTs2-UsMC5yUtWR' },
+  { title: 'Sumnima', titleNe: 'Sumnima', authorNe: '', author: '', parts: 14, driveUrl: 'https://drive.google.com/drive/folders/1an5Ry5QVWiuiEkhSSMCPjBdevYOzFkc5' },
+  { title: 'Suparnakha  Nepali Story', titleNe: 'Suparnakha  Nepali Story', authorNe: '', author: '', parts: 1, driveUrl: 'https://drive.google.com/drive/folders/1zXa978A0GpCvvze5ltYVPrKjTbyjOdZM' },
+  { title: 'Swet Bhairabi', titleNe: 'Swet Bhairabi', authorNe: '', author: '', parts: 4, driveUrl: 'https://drive.google.com/drive/folders/1XOJyeGAOVak3hM2HrI0qoCzbq1DaVfvC' },
+  { title: 'Taap', titleNe: 'Taap', authorNe: '', author: '', parts: 14, driveUrl: 'https://drive.google.com/drive/folders/1rsJ49caTiBkbwaVcx3GETcrhVjZy29EN' },
+  { title: 'Tamasuk', titleNe: 'Tamasuk', authorNe: '', author: '', parts: 3, driveUrl: 'https://drive.google.com/drive/folders/12ZG9QpljtsLW739Y-r8TtxJjVuSxzEGh' },
+  { title: 'Tee Dinharu', titleNe: 'Tee Dinharu', authorNe: '', author: '', parts: 3, driveUrl: 'https://drive.google.com/drive/folders/1FDXIlJzrh9DKuw8Zet95YX_ZgpHiT5Gl' },
+  { title: 'The Good Earth', titleNe: 'The Good Earth', authorNe: '', author: '', parts: 16, driveUrl: 'https://drive.google.com/drive/folders/1c8iySn72qW62mEi3PwbKtAAk9b7FBpgh' },
+  { title: 'The Scarlet Letter - Kalankini', titleNe: 'The Scarlet Letter - Kalankini', authorNe: '', author: '', parts: 0, driveUrl: 'https://drive.google.com/drive/folders/1pUNg_zxXUkcx75ht_fJ8DxhGN2XufMeR' },
+  { title: 'Timro Logne Ra Ma', titleNe: 'Timro Logne Ra Ma', authorNe: '', author: '', parts: 2, driveUrl: 'https://drive.google.com/drive/folders/1K-pLYcJXYwK3_fuOH9riceVJQnMnVBeG' },
+  { title: 'Tin Ghumti', titleNe: 'Tin Ghumti', authorNe: '', author: '', parts: 5, driveUrl: 'https://drive.google.com/drive/folders/1AiZoOTUjogmVS-mxGC2YOHCzd6VUmye9' },
+  { title: 'Tribhuvan Ki Erika', titleNe: 'Tribhuvan Ki Erika', authorNe: '', author: '', parts: 16, driveUrl: 'https://drive.google.com/drive/folders/1KOtuc3DroADdwBvg-3XsvZMx8CanlLbO' },
+  { title: 'Udharo Jutta  Nepali Story', titleNe: 'Udharo Jutta  Nepali Story', authorNe: '', author: '', parts: 1, driveUrl: 'https://drive.google.com/drive/folders/1i9ZJVnAD0yQElqLyawiZpQji5GpSsAAW' },
+  { title: 'Unko Samjhana', titleNe: 'Unko Samjhana', authorNe: '', author: '', parts: 6, driveUrl: 'https://drive.google.com/drive/folders/1sa4a5kbL51ZYINIWfcbC8hu5CCU056Mf' },
+  { title: 'Urgen ko Ghoda', titleNe: 'Urgen ko Ghoda', authorNe: '', author: '', parts: 14, driveUrl: 'https://drive.google.com/drive/folders/1MUal_IFIfdv8X877fFj6DPuA1EaYKdTU' },
+  { title: 'Urmila  Nepali Story', titleNe: 'Urmila  Nepali Story', authorNe: '', author: '', parts: 1, driveUrl: 'https://drive.google.com/drive/folders/1kgl1NaEGuE-ZZtcvWcnmxVQogzXcOPcf' },
+  { title: 'Urmila  Surparnkha', titleNe: 'Urmila  Surparnkha', authorNe: '', author: '', parts: 1, driveUrl: 'https://drive.google.com/drive/folders/1b_D5ZKpKke9BcuI2_JyWIh-9oc7UYeir' },
+  { title: 'Vianna Ma Tin Mahina', titleNe: 'Vianna Ma Tin Mahina', authorNe: '', author: '', parts: 1, driveUrl: 'https://drive.google.com/drive/folders/1VPhxvzOwk76GZEPDHR28dxTf1ExDfBoa' },
+  { title: 'Yatra Aarambhako Serofero', titleNe: 'Yatra Aarambhako Serofero', authorNe: '', author: '', parts: 1, driveUrl: 'https://drive.google.com/drive/folders/1JSs4IFIaH2Y4vADu-sgXaUFpBj6L5J7L' },
+  { title: 'Yesari Janmiyaou Hami Maato Baata', titleNe: 'Yesari Janmiyaou Hami Maato Baata', authorNe: '', author: '', parts: 1, driveUrl: 'https://drive.google.com/drive/folders/1tCA3zu-jPE6Ci0dcWqvtDxRhteoPVL_k' },
+  { title: 'Yuddha  Matapitalai Sodhnuhos  Aama Januhos  Maya Thakuri', titleNe: 'Yuddha  Matapitalai Sodhnuhos  Aama Januhos  Maya Thakuri', authorNe: '', author: '', parts: 1, driveUrl: 'https://drive.google.com/drive/folders/1lvlwD7nQGV7h1gvaQlnaocPB6iXTPi2j' },
+];
+
+// If your audiobooks live inside one parent Drive folder (sambeg),
+// and each sub-folder is one audiobook, paste the subfolder links above.
+// The parent folder for reference: https://drive.google.com/drive/folders/1wuA4q9IV2ZhYcrLKdmdQppxy6OSaRC-L
+
+function loadAudiobooks() {
+  audiobooks = AUDIOBOOK_LIST.map((ab, i) => ({
+    ...ab,
+    id: 'a' + i,
+    type: 'audiobook',
+  }));
+}
+
+
   const key = filename.replace(/\.epub$/i, '').toLowerCase();
   const meta = EPUB_METADATA[key];
   if (meta) return meta.titleNe || meta.title;
@@ -1257,15 +1510,18 @@ function hideLoading() {
 // ─── RENDER LIST ─────────────────────────────────────────────────────────────
 function currentItems() {
   let pool;
-  if (currentTab === 'poems')   pool = poems;
+  if (currentTab === 'poems')        pool = poems;
   else if (currentTab === 'stories') pool = stories;
+  else if (currentTab === 'audiobooks') pool = audiobooks;
   else pool = books;
 
   if (!searchQuery) return pool;
   const q = searchQuery.toLowerCase();
   return pool.filter(item =>
     item.title.toLowerCase().includes(q) ||
+    (item.titleNe || '').toLowerCase().includes(q) ||
     (item.author || '').toLowerCase().includes(q) ||
+    (item.authorNe || '').toLowerCase().includes(q) ||
     (item.content || '').toLowerCase().includes(q) ||
     (item.tags || []).some(t => t.toLowerCase().includes(q))
   );
@@ -1278,6 +1534,7 @@ function renderList() {
 
   const label = currentTab === 'poems' ? 'poem'
               : currentTab === 'stories' ? 'stor'
+              : currentTab === 'audiobooks' ? 'audiobook'
               : 'book';
   const plural = currentTab === 'stories'
     ? (items.length !== 1 ? 'ies' : 'y')
@@ -1287,8 +1544,29 @@ function renderList() {
   if (items.length === 0) {
     const emptyMsg = currentTab === 'books'
       ? `<div class="no-results"><div class="icon">📚</div><p>No EPUB books found in <code>NEP_EPUB/</code>.<br/>Add <code>.epub</code> files to that folder.</p></div>`
+      : currentTab === 'audiobooks'
+      ? `<div class="no-results"><div class="icon">🎧</div><p>श्रव्यपुस्तकहरू थपिएको छैन।<br/>Add audiobook entries to <code>AUDIOBOOK_LIST</code> in the HTML.</p></div>`
       : `<div class="no-results"><div class="icon">🔍</div><p>कुनै परिणाम फेला परेन।<br/>No results found.</p></div>`;
     container.innerHTML = emptyMsg;
+    return;
+  }
+
+  if (currentTab === 'audiobooks') {
+    container.innerHTML = items.map((item, idx) => `
+      <a class="audio-card" href="${escHtml(item.driveUrl || '#')}" target="_blank" rel="noopener"
+         style="animation: fadeIn 0.3s ease ${idx * 0.03}s both">
+        <div class="audio-card-icon">🎧</div>
+        <div class="audio-card-body">
+          <div class="audio-card-title">${escHtml(item.titleNe || item.title)}</div>
+          <div class="audio-card-meta">
+            ${item.authorNe || item.author ? `<span class="audio-card-author">${escHtml(item.authorNe || item.author)}</span>` : ''}
+            ${item.parts ? `<span class="audio-card-parts">${item.parts} part${item.parts !== 1 ? 's' : ''}</span>` : ''}
+          </div>
+          ${item.title ? `<div class="audio-card-english">${escHtml(item.title)}</div>` : ''}
+        </div>
+        <div class="audio-ext-icon">↗</div>
+      </a>
+    `).join('');
     return;
   }
 
@@ -1387,7 +1665,7 @@ function clearSearch() {
   const countEl = document.getElementById('list-count');
 
   countEl.addEventListener('touchstart', (e) => {
-    if (currentTab === 'books') return;
+    if (currentTab === 'books' || currentTab === 'audiobooks') return;
     pressTimer = setTimeout(() => {
       pressTimer = null;
       addNewItem();
@@ -1404,7 +1682,7 @@ function clearSearch() {
 
   // Desktop fallback: mousedown
   countEl.addEventListener('mousedown', () => {
-    if (currentTab === 'books') return;
+    if (currentTab === 'books' || currentTab === 'audiobooks') return;
     pressTimer = setTimeout(() => {
       pressTimer = null;
       addNewItem();
