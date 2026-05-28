@@ -1479,6 +1479,7 @@ function loadAudiobooks() {
 }
 
 
+function epubFilenameToTitle(filename) {
   const key = filename.replace(/\.epub$/i, '').toLowerCase();
   const meta = EPUB_METADATA[key];
   if (meta) return meta.titleNe || meta.title;
